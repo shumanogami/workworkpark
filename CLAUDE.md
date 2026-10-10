@@ -1,31 +1,35 @@
 # CLAUDE.md
 
-このリポジトリで作業する Claude Code 向けの指示書。2人の開発者が共有する。
+石巻ハッカソンのチーム開発リポジトリ（workworkpark）。複数のメンバーがそれぞれのClaude Codeで同時に作業する前提のルール。
 
 ## プロジェクト概要
 
-スマホをコントローラー、PCをゲーム画面にする対戦ゲーム（ハッカソン、3日間）。最初のゲームは「Jump the highest」。
-
-- 仕様：[初期構想.md](初期構想.md)
+- テーマ：「仲間の結束をふかめるゲームを作ろう！！」
+- PC画面がゲーム本体、各自のスマホがコントローラーになる2〜8人用ゲーム
+- 最初に作るゲーム：「Jump the highest」
+- **仕様の正は [初期構想.md](初期構想.md)**。実装前に必ず読む。仕様を変えるときは `初期構想.md` も同じPRで更新する
 - タスクと担当：[タスク.md](タスク.md)
+- 環境構築の手順：[README.md](README.md)
 
-仕様書・タスク一覧は補助資料。コード本体とそのコメントを正とし、両者がずれたらコードに合わせて資料を直す。
+## 技術スタック
+
+- TypeScript ＋ Vite ＋ React（画面の切り替えは react-router）
+- 見た目：Tailwind CSS v4 ＋ DotGothic16 フォント（`font-dot`）
+- 描画：HTML5 Canvas／物理処理：自作（ライブラリなし）
+- 通信：Supabase Realtime（Broadcastで操作送信、Presenceで参加人数管理）
+- テスト：Vitest
+- 公開：Vercel（mainにpushすると自動公開）
+- すべて無料枠で構築する。有料サービスや新しいライブラリを足すときは、PRの説明に理由を書く
 
 ## コマンド
 
 ```sh
-npm install      # 依存パッケージの導入（初回・package.json 更新後）
+npm ci           # 依存パッケージの導入（初回・git pull で package-lock.json が変わったとき）
 npm run dev      # 開発サーバー（http://localhost:5173）。同じWi-Fiのスマホからも開ける
-npm run build    # 型チェック＋本番ビルド。push 前に通ることを確認する
-npm run lint     # oxlint
+npm run build    # 型チェック＋本番ビルド
 npm test         # Vitest（物理処理・勝敗判定の自動テスト）
+npm run lint     # oxlint
 ```
-
-環境構築の手順は [README.md](README.md) を参照。
-
-## 技術スタック
-
-Vite＋React＋TypeScript、react-router、Tailwind CSS v4（DotGothic16 フォント、`font-dot`）、Supabase Realtime（Broadcast＋Presence）、Vitest、HTML5 Canvas、物理処理は自作。公開先は Vercel（`main` への push で自動デプロイ）。すべて無料枠で運用する。
 
 ## ディレクトリ構成
 
@@ -43,33 +47,61 @@ src/
 
 <!-- 機能が増えたら追記する（例：src/game/ に物理・描画、src/realtime/ に Supabase 接続） -->
 
+## 基本的な振る舞い
+
+- 回答・コミットメッセージ・PRの説明は日本語で書く
+- メンバーには非エンジニアもいる。技術用語には一言で補足を添える
+- 作業の前に「何をするか」を一言伝えてから実行する
+- コードのコメントは日本語で、「なぜそうしたか」を書く
+
 ## 開発方針
 
 1. **まず端から端までつなぐ。** 1日目のゴールは「スマホのボタンでPC上の四角が動く」。見た目の作り込みは2日目以降。
 2. **物理処理と勝敗判定は純粋な関数にし、Vitest でテストする。** `step(state, inputs, dt) => 次の state` の形で、React・Canvas・通信に触らない。テストファイルは対象と同じ場所に `*.test.ts` で置く。画面・通信・スマホ操作は自動テストせず、実機で確認する。
-3. **小さく頻繁に push する。** 動く単位ができたらすぐ push し、コンフリクトを小さく保つ。
+3. **小さくこまめにPRを出す。** 動く単位ができたらすぐPRにし、コンフリクトを小さく保つ。
 4. **時間が足りないときは次の順に削る**：効果音 → 演出 → リザルト画面の作り込み。積み重なり（T8）と横衝突（T9）はゲームの核なので削らない。
 
 ## 設計ルール
 
 - **PCが審判、スマホはリモコン。** 物理演算・勝敗判定・プレイヤーの色と番号の割り当てはPCだけが行う。スマホはボタンの状態を送り、PCから届いた状態を表示するだけ。
-- **通信の型は `src/shared/messages.ts` に集約する。** 変更するときは、もう1人の開発者と合意してから。任意項目（`?`）の追加は影響が小さく、名前の変更・削除は両側の修正が必要になる。
-- **送信の頻度**：ボタンが変化したときに送信し、ゲーム中のみ0.5秒ごとに送り直す。Supabase 無料枠（毎秒100件）を超えないこと。
-- **ゲームループ**：`requestAnimationFrame` は `useEffect` 内で起動し、クリーンアップで必ず止める（StrictMode で二重に起動するため）。
+- **通信の型は `src/shared/messages.ts` に集約する。** 変更するときは、他のメンバーと合意してから。任意項目（`?`）の追加は影響が小さく、名前の変更・削除は送る側・受け取る側の両方の修正が必要になる。
 
-## 注意点
+## Git運用ルール（共同開発）
 
-- **秘密情報**：公開リポジトリ。Supabase のキーは `.env.local`（Git 管理外）に `VITE_` で始まる名前で書く。見本は `.env.example`。使うのは publishable キー（`sb_publishable_`）のみ。secret キー（旧 `service_role`）はコードにもリポジトリにも絶対に入れない。旧 `anon` キーは2026年末で廃止予定のため使わない。
-- **`crypto.randomUUID()` を使わない**：https 以外（`http://192.168...` での開発）のスマホでは使えない。
-- **スマホ対応**：iPhone・Android の両方で動くこと。ボタンには `touch-action: none` を付ける。iPhone の Safari は横向き固定に非対応のため、縦向きのときは案内を表示する。
-- **URL の直接アクセス**：`vercel.json` の rewrites で全パスを `index.html` に返している。消さないこと。
+### 作業を始めるとき
 
-## Git の運用
+1. `git switch main` → `git pull` で最新にする
+2. 作業用ブランチを作る：`git switch -c <種類>/<内容>`
+   - 例：`feat/controller-buttons`、`fix/jump-collision`、`docs/update-spec`
+   - 種類：`feat`（機能追加）／`fix`（不具合修正）／`docs`（文書）／`style`（見た目）／`refactor`（整理）／`chore`（設定・雑務）
 
-- ハッカソン期間中は `main` へ直接 push する。push 前に `git pull` で最新を取り込み、`npm run build` と `npm test` が通ることを確認する。
-- パッケージを追加したら `package.json` と `package-lock.json` を両方コミットする。
-- コミットメッセージは日本語で、先頭に種類を付ける（`feat:` 機能、`fix:` 修正、`docs:` 資料、`chore:` 設定など）。
+### 作業中
 
-## コーディング規約
+- こまめにコミットし、作業用ブランチを `git push -u origin <ブランチ名>` でGitHubに上げる
+- コミットメッセージ：`<種類>: <日本語の要約>`（例：`feat: スマホのジャンプボタンを追加`）
+- 長く作業するときは `git pull origin main` でmainの変更を取り込み、衝突（コンフリクト）を早めに解消する
+- パッケージを追加したら `package.json` と `package-lock.json` を両方コミットする
 
-- コメントは日本語で、「なぜそうしたか」を書く。
+### 作業を終えるとき
+
+1. `npm run build` と `npm test` が通ることを確認する
+2. `gh pr create` でPull Request（変更の提案）を作る。説明には「何を・なぜ・どう確認したか」を書く
+3. 他のメンバーが確認してからmainにマージする。急ぎのときはチャットで一声かけてからマージする
+4. マージ後はmainに戻って `git pull` する
+
+### 禁止事項
+
+- **mainへの直接push、force push（`git push --force`）はしない**。mainは常に動く状態を保つ
+- 他の人のブランチを勝手に書き換えない
+- コンフリクトが自分で判断できないときは、勝手に片方を消さず、メンバーに確認する
+
+## 秘密情報の扱い（公開リポジトリ）
+
+- SupabaseのURLと **publishable キー**（`sb_publishable_` で始まる）は `.env.local` に `VITE_` で始まる名前で書く（`VITE_SUPABASE_URL`、`VITE_SUPABASE_PUBLISHABLE_KEY`。見本は `.env.example`）。`.env.local` は `.gitignore` で除外し、絶対にコミットしない
+- 旧 `anon` キーは2026年末で廃止予定のため使わない
+- **secret キー（旧 `service_role` キー）はコード・リポジトリ・PRの説明に一切書かない**
+- コミット前に `git diff --staged` で、キーやパスワードが混ざっていないか確認する
+
+## 実装ルール
+
+細かい実装ルール（送信間隔、`vercel.json`、スマホのボタン設定、ゲームループの止め方、`crypto.randomUUID()` を使わないことなど）は [初期構想.md](初期構想.md) の「実装ルール」と [タスク.md](タスク.md) の「各タスクのメモ」に従う。
