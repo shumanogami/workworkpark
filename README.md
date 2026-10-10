@@ -2,8 +2,9 @@
 
 石巻ハッカソン。スマホをコントローラー、PCをゲーム画面にする対戦ゲーム。
 
-- 仕様：[初期構想.md](初期構想.md)
-- タスク：[タスク.md](タスク.md)
+- 仕様：[docs/初期構想.md](docs/初期構想.md)
+- タスク：[docs/タスク.md](docs/タスク.md)
+- 開発環境の確認：[docs/環境確認.md](docs/環境確認.md)
 - 公開URL：https://workworkpark.vercel.app （PC画面）／ https://workworkpark.vercel.app/controller （スマホ）
 
 ## 前提条件
@@ -30,7 +31,7 @@ cp .env.example .env.local   # PowerShell の場合：Copy-Item .env.example .en
 | 変数名 | 値 |
 |---|---|
 | `VITE_SUPABASE_URL` | `https://xxxx.supabase.co` 形式のプロジェクト URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_` で始まるキー（旧 `anon` キーは2026年末で廃止予定のため使わない） |
+| `VITE_SUPABASE_ANON_KEY` | `sb_publishable_` で始まるキー（変数名は ANON_KEY だが、旧 `anon` キーは2026年末で廃止予定のため値には使わない） |
 
 ```sh
 npm run dev   # http://localhost:5173 で起動

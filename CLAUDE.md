@@ -7,9 +7,10 @@
 - テーマ：「仲間の結束をふかめるゲームを作ろう！！」
 - PC画面がゲーム本体、各自のスマホがコントローラーになる2〜8人用ゲーム
 - 最初に作るゲーム：「Jump the highest」
-- **仕様の正は [初期構想.md](初期構想.md)**。実装前に必ず読む。仕様を変えるときは `初期構想.md` も同じPRで更新する
-- タスクと担当：[タスク.md](タスク.md)
-- 環境構築の手順：[README.md](README.md)
+- **仕様の正は [docs/初期構想.md](docs/初期構想.md)**。実装前に必ず読む。仕様を変えるときは `docs/初期構想.md` も同じPRで更新する
+- タスクと担当：[docs/タスク.md](docs/タスク.md)
+- 環境構築の手順：[README.md](README.md)／各メンバーの環境の確認結果：[docs/環境確認.md](docs/環境確認.md)
+- 文書は `docs/` にまとめる
 
 ## 技術スタック
 
@@ -97,11 +98,11 @@ src/
 
 ## 秘密情報の扱い（公開リポジトリ）
 
-- SupabaseのURLと **publishable キー**（`sb_publishable_` で始まる）は `.env.local` に `VITE_` で始まる名前で書く（`VITE_SUPABASE_URL`、`VITE_SUPABASE_PUBLISHABLE_KEY`。見本は `.env.example`）。`.env.local` は `.gitignore` で除外し、絶対にコミットしない
+- SupabaseのURLと **publishable キー**（`sb_publishable_` で始まる）は `.env.local` に `VITE_` で始まる名前で書く（`VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`。変数名は ANON_KEY だが値は publishable キー。見本は `.env.example`）。`.env.local` は `.gitignore` で除外し、絶対にコミットしない
 - 旧 `anon` キーは2026年末で廃止予定のため使わない
 - **secret キー（旧 `service_role` キー）はコード・リポジトリ・PRの説明に一切書かない**
 - コミット前に `git diff --staged` で、キーやパスワードが混ざっていないか確認する
 
 ## 実装ルール
 
-細かい実装ルール（送信間隔、`vercel.json`、スマホのボタン設定、ゲームループの止め方、`crypto.randomUUID()` を使わないことなど）は [初期構想.md](初期構想.md) の「実装ルール」と [タスク.md](タスク.md) の「各タスクのメモ」に従う。
+細かい実装ルール（送信間隔、`vercel.json`、スマホのボタン設定、ゲームループの止め方、`crypto.randomUUID()` を使わないことなど）は [docs/初期構想.md](docs/初期構想.md) の「実装ルール」と [docs/タスク.md](docs/タスク.md) の「各タスクのメモ」に従う。
