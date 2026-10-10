@@ -17,6 +17,7 @@ export function createInitialState(players: GamePlayer[]): GameState {
       vy: 0,
       facing: 1,
       grounded: true,
+      standingOn: null,
       jumpHeld: false,
       jumpBuffer: 0,
     })),

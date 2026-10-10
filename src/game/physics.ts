@@ -1,5 +1,6 @@
 import {
   AIR_ACCEL,
+  CEILING_Y,
   GRAVITY,
   GROUND_ACCEL,
   JUMP_BUFFER_TIME,
@@ -7,6 +8,7 @@ import {
   MOVE_SPEED,
   PLAYER_SIZE,
   STAGE_WIDTH,
+  SUPPORT_JUMP_BONUS,
   WALL_WIDTH,
 } from './constants'
 import type { InputMessage } from '../shared/messages'
@@ -19,7 +21,13 @@ function approach(value: number, target: number, maxDelta: number): number {
 }
 
 // ボタン入力を速度に反映する（位置はまだ動かさない）
-export function applyInput(p: PlayerState, input: InputMessage | undefined, dt: number): PlayerState {
+// supportVy：立っている相手の縦の速度。上昇中の人の頭から跳ぶと、その勢いも上乗せされる
+export function applyInput(
+  p: PlayerState,
+  input: InputMessage | undefined,
+  dt: number,
+  supportVy = 0,
+): PlayerState {
   const dir = (input?.right ? 1 : 0) - (input?.left ? 1 : 0)
 
   // 押している間ずっと最高速ではなく、加速度で徐々に近づける（急に止まる・急に最高速になる違和感を防ぐ）
@@ -33,7 +41,7 @@ export function applyInput(p: PlayerState, input: InputMessage | undefined, dt: 
 
   let vy = p.vy
   if (jumpBuffer > 0 && p.grounded) {
-    vy = JUMP_SPEED
+    vy = JUMP_SPEED + SUPPORT_JUMP_BONUS * Math.max(0, supportVy)
     jumpBuffer = 0
   }
 
@@ -48,10 +56,11 @@ export function applyInput(p: PlayerState, input: InputMessage | undefined, dt: 
 }
 
 // 速度に従って位置を動かし、重力・地面・左右の壁を反映する
-export function integrate(p: PlayerState, dt: number): PlayerState {
-  let vx = p.vx
+// carryDx：頭の上に立っている相手がこのコマで横に動いた量。乗っている人も同じだけ運ばれる
+export function integrate(p: PlayerState, dt: number, carryDx = 0): PlayerState {
+  const vx = p.vx
   let vy = p.vy - GRAVITY * dt
-  let x = p.x + vx * dt
+  const x = p.x + vx * dt + carryDx
   let y = p.y + vy * dt
 
   // 地面：めり込んだら地面の上に戻して止める
@@ -62,16 +71,21 @@ export function integrate(p: PlayerState, dt: number): PlayerState {
     grounded = true
   }
 
-  // 左右の壁：めり込んだら壁の内側に戻し、壁に向かう速度を消す
-  const minX = WALL_WIDTH
-  const maxX = STAGE_WIDTH - WALL_WIDTH - PLAYER_SIZE
-  if (x < minX) {
-    x = minX
-    vx = Math.max(vx, 0)
-  } else if (x > maxX) {
-    x = maxX
-    vx = Math.min(vx, 0)
+  // 天井：画面の上端より上には行かない
+  if (y > CEILING_Y) {
+    y = CEILING_Y
+    vy = Math.min(vy, 0)
   }
 
-  return { ...p, x, y, vx, vy, grounded }
+  // 誰の上に立っているかは、このあとのプレイヤー同士の当たり判定で決め直す
+  return clampToWalls({ ...p, x, y, vx, vy, grounded, standingOn: null })
+}
+
+// 左右の壁：めり込んだら壁の内側に戻し、壁に向かう速度を消す
+export function clampToWalls(p: PlayerState): PlayerState {
+  const minX = WALL_WIDTH
+  const maxX = STAGE_WIDTH - WALL_WIDTH - PLAYER_SIZE
+  if (p.x < minX) return { ...p, x: minX, vx: Math.max(p.vx, 0) }
+  if (p.x > maxX) return { ...p, x: maxX, vx: Math.min(p.vx, 0) }
+  return p
 }
