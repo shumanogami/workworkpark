@@ -26,11 +26,14 @@ export function applyInput(
   dt: number,
   supportVy = 0,
 ): PlayerState {
-  const dir = (input?.right ? 1 : 0) - (input?.left ? 1 : 0)
+  // 弾かれている間は左右もジャンプも効かない（勢いのまま飛ばされる）
+  const stunned = p.stunTime > 0
+  const stunTime = Math.max(0, p.stunTime - dt)
+  const dir = stunned ? 0 : (input?.right ? 1 : 0) - (input?.left ? 1 : 0)
 
   // 押している間ずっと最高速ではなく、加速度で徐々に近づける（急に止まる・急に最高速になる違和感を防ぐ）
   const accel = p.grounded ? GROUND_ACCEL : AIR_ACCEL
-  const vx = approach(p.vx, dir * MOVE_SPEED, accel * dt)
+  const vx = stunned ? p.vx : approach(p.vx, dir * MOVE_SPEED, accel * dt)
 
   // ジャンプは「押した瞬間」だけ受け付ける（押しっぱなしで連続ジャンプしないように）
   const jumpNow = !!input?.jump
@@ -38,7 +41,7 @@ export function applyInput(
   let jumpBuffer = pressed ? JUMP_BUFFER_TIME : Math.max(0, p.jumpBuffer - dt)
 
   let vy = p.vy
-  if (jumpBuffer > 0 && p.grounded) {
+  if (jumpBuffer > 0 && p.grounded && !stunned) {
     vy = JUMP_SPEED + Math.max(0, supportVy)
     jumpBuffer = 0
   }
@@ -50,6 +53,7 @@ export function applyInput(
     facing: dir === 0 ? p.facing : (dir as 1 | -1),
     jumpHeld: jumpNow,
     jumpBuffer,
+    stunTime,
   }
 }
 
