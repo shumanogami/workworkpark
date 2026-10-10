@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 const url = import.meta.env.VITE_SUPABASE_URL
-const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+// 変数名は ANON_KEY だが、値には sb_publishable_ で始まるキーを入れる（Vercelに登録済みの名前に合わせている）
+const publishableKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // 環境変数の設定漏れは通信が静かに失敗して原因が分かりにくいため、起動時に明示的に止める
 if (!url || !publishableKey) {
