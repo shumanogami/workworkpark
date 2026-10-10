@@ -41,10 +41,11 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState) {
     ctx.strokeStyle = COLORS.outline
     ctx.lineWidth = 3
     ctx.strokeRect(p.x, top, PLAYER_SIZE, PLAYER_SIZE)
-    // 目
+    // 目（向いている方向に寄せる）
+    const eyeShift = p.facing * 4
     ctx.fillStyle = COLORS.outline
-    ctx.fillRect(p.x + 10, top + 12, 6, 8)
-    ctx.fillRect(p.x + 24, top + 12, 6, 8)
+    ctx.fillRect(p.x + 10 + eyeShift, top + 12, 6, 8)
+    ctx.fillRect(p.x + 24 + eyeShift, top + 12, 6, 8)
   }
 
   // 残り時間（切り上げで表示し、0 になった瞬間に終了）
