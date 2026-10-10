@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIXED_DT, GRAVITY, JUMP_SPEED, PLAYER_SIZE } from './constants'
+import { CEILING_Y, FIXED_DT, GRAVITY, JUMP_SPEED, PLAYER_SIZE } from './constants'
 import { createInitialState } from './state'
 import { step } from './step'
 import type { GameState, Inputs } from './types'
@@ -115,5 +115,48 @@ describe('横に並んだとき', () => {
     const before = setup({ A: { x: 300, y: 0 }, B: { x: 360, y: 0 } })
     const s = run(before, { ...press('A', { right: true }), ...press('B', { left: true }) }, 1)
     expect(Math.abs(get(s, 'A').x - get(s, 'B').x)).toBeGreaterThanOrEqual(PLAYER_SIZE - 0.01)
+  })
+})
+
+describe('レビューで見つかった不具合の再発防止', () => {
+  it('下の人が右へ動きながらジャンプしても、上の人は乗ったまま運ばれる', () => {
+    let s = setup({ A: { x: 300, y: PLAYER_SIZE }, B: { x: 300, y: 0 } })
+    for (let i = 0; i < 50; i++) {
+      s = step(s, press('B', { right: true, jump: true }), FIXED_DT)
+      const a = get(s, 'A')
+      const b = get(s, 'B')
+      expect(a.standingOn).toBe('B')
+      expect(a.y).toBeCloseTo(b.y + PLAYER_SIZE)
+      expect(a.x).toBeCloseTo(b.x)
+    }
+  })
+
+  it('上昇中の人の頭から跳ぶと、押すタイミングによらず地面より高く跳べ、画面の外には出ない（U6・U10）', () => {
+    const groundJump = JUMP_SPEED ** 2 / (2 * GRAVITY)
+    for (const k of [1, 2, 5, 10, 15]) {
+      let s = setup({ A: { x: 300, y: PLAYER_SIZE }, B: { x: 300, y: 0 } })
+      s = step(s, press('B', { jump: true }), FIXED_DT) // B がジャンプ
+      for (let i = 0; i < k; i++) s = step(s, {}, FIXED_DT)
+      let maxA = 0
+      for (let i = 0; i < 90; i++) {
+        s = step(s, press('A', { jump: true }), FIXED_DT) // k コマ後に A がジャンプ
+        maxA = Math.max(maxA, get(s, 'A').y)
+      }
+      expect(maxA).toBeGreaterThan(PLAYER_SIZE + groundJump * 0.95)
+      expect(maxA).toBeLessThanOrEqual(CEILING_Y)
+    }
+  })
+
+  it('頭からはみ出した部分の下を別の人が通っても、上の人は押されない', () => {
+    // A は B の頭に、左へ 18px はみ出して乗っている。C が左から歩いてきて A のはみ出し部分の下に入る
+    // 当たり判定の処理順で結果が変わっていたため、C を配列の先頭に置く（ブラウザ確認で見つかった条件）
+    let s = setup({ C: { x: 200, y: 0 }, A: { x: 282, y: PLAYER_SIZE }, B: { x: 300, y: 0 } })
+    const ax = get(s, 'A').x
+    // C が B に触れる手前まで歩かせる（触れると B ごと動くため）
+    while (get(s, 'C').x + PLAYER_SIZE < get(s, 'B').x - 5) {
+      s = step(s, press('C', { right: true }), FIXED_DT)
+    }
+    expect(get(s, 'C').x + PLAYER_SIZE).toBeGreaterThan(get(s, 'A').x + 10) // はみ出し部分の下に入っている
+    expect(get(s, 'A').x).toBeCloseTo(ax)
   })
 })

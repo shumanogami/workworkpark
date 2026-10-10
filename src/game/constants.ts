@@ -36,3 +36,14 @@ export const AIR_ACCEL = 1500
 
 // 着地の少し前にジャンプを押しても受け付ける猶予（秒）。押したのに跳ばない、という不満を減らす
 export const JUMP_BUFFER_TIME = 0.1
+
+// 上昇中の人の頭からジャンプしたとき、下の人の上昇速度を何割上乗せするか（未決定仕様 U6）
+// そのまま足すと画面の外まで飛び出すため、割合を抑える
+export const SUPPORT_JUMP_BONUS = 0.4
+
+// 頭の上に立つのに必要な、横方向の重なりの最小幅（ピクセル）
+// これより浅く頭の端にかかっただけだと、宙に浮いて立っているように見えるため、滑り落とす（U5）
+export const MIN_STAND_OVERLAP = PLAYER_SIZE / 4
+
+// 足元の高さの上限＝画面の上端（未決定仕様 U10）。これより上に行くと画面に映らなくなるため、見えない天井で止める
+export const CEILING_Y = STAGE_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE
