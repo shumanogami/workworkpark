@@ -20,6 +20,7 @@ export function createInitialState(players: GamePlayer[]): GameState {
       standingOn: null,
       jumpHeld: false,
       jumpBuffer: 0,
+      stunTime: 0,
     })),
     elapsed: 0,
     finished: false,

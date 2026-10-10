@@ -1,4 +1,11 @@
-import { MIN_STAND_OVERLAP, PLAYER_SIZE } from './constants'
+import {
+  BOUNCE_VX,
+  BOUNCE_VY,
+  KNOCKBACK_TIME,
+  MIN_STAND_OVERLAP,
+  MOVING_THRESHOLD,
+  PLAYER_SIZE,
+} from './constants'
 import { clampToWalls } from './physics'
 import type { PlayerState } from './types'
 
@@ -43,7 +50,6 @@ function landOrSlideOff(top: PlayerState, bottom: PlayerState): PlayerState {
 }
 
 // 横に重なった2人を、重なりの半分ずつ左右に押し離す。壁際で片方が動けない分は、もう片方が引き受ける
-// T9 で「弾き飛ばし」に置き換える
 export function separateSideways(a: PlayerState, b: PlayerState): [PlayerState, PlayerState] {
   const aIsLeft = a.x < b.x || (a.x === b.x && a.playerId < b.playerId)
   const overlap = PLAYER_SIZE - Math.abs(a.x - b.x)
@@ -61,12 +67,32 @@ export function separateSideways(a: PlayerState, b: PlayerState): [PlayerState, 
   return [na, nb]
 }
 
+// 横からぶつかった2人を、お互いに反対向きの斜め上へ弾き飛ばす
+// どちらか一方でも横に動いていれば両方弾かれる（止まっている人にぶつかった場合も含む。未決定仕様 U1・U2）
+// 弾かれて飛んでいる最中の人も横に動いているので、別の人にぶつかればまた弾かれる（U3）
+export function bounceSideways(a: PlayerState, b: PlayerState): [PlayerState, PlayerState] {
+  const [na, nb] = separateSideways(a, b)
+  const moving = Math.abs(a.vx) > MOVING_THRESHOLD || Math.abs(b.vx) > MOVING_THRESHOLD
+  if (!moving) return [na, nb]
+
+  const aDir = na.x < nb.x ? -1 : 1
+  const knock = (p: PlayerState, dir: number): PlayerState => ({
+    ...p,
+    vx: dir * BOUNCE_VX,
+    vy: Math.max(p.vy, BOUNCE_VY),
+    grounded: false,
+    standingOn: null,
+    stunTime: KNOCKBACK_TIME,
+  })
+  return [knock(na, aDir), knock(nb, -aDir)]
+}
+
 // プレイヤー同士の重なりを解消する
 // prev：このコマで動く前の状態（誰が上にいたかの判定に使う）、next：動いた後の状態（同じ並び順）
 export function resolvePlayerCollisions(
   prev: PlayerState[],
   next: PlayerState[],
-  sideways: (a: PlayerState, b: PlayerState) => [PlayerState, PlayerState] = separateSideways,
+  sideways: (a: PlayerState, b: PlayerState) => [PlayerState, PlayerState] = bounceSideways,
 ): PlayerState[] {
   const ps = [...next]
 

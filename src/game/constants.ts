@@ -37,6 +37,16 @@ export const AIR_ACCEL = 1500
 // 着地の少し前にジャンプを押しても受け付ける猶予（秒）。押したのに跳ばない、という不満を減らす
 export const JUMP_BUFFER_TIME = 0.1
 
+// 横からぶつかったときに弾かれる速さ（ピクセル/秒）。横と上の組み合わせで「斜め上」に飛ぶ
+export const BOUNCE_VX = 450
+export const BOUNCE_VY = 450
+
+// 弾かれた後、操作が効かない時間（秒）。すぐに踏みとどまれると弾かれた感じが出ないため
+export const KNOCKBACK_TIME = 0.35
+
+// 「動いている」とみなす横方向の速さ（ピクセル/秒）。これ以下同士で重なったときは弾かずに押し離すだけ
+export const MOVING_THRESHOLD = 20
+
 // 上昇中の人の頭からジャンプしたとき、下の人の上昇速度を何割上乗せするか（未決定仕様 U6）
 // そのまま足すと画面の外まで飛び出すため、割合を抑える
 export const SUPPORT_JUMP_BONUS = 0.4

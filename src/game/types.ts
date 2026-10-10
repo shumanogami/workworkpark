@@ -19,6 +19,7 @@ export type PlayerState = {
   standingOn: string | null // 誰の頭の上に立っているか（playerId）。地面や空中なら null
   jumpHeld: boolean // 前のコマでジャンプボタンが押されていたか（押した瞬間を見分けるため）
   jumpBuffer: number // ジャンプ入力の猶予の残り時間（秒）
+  stunTime: number // 弾かれて操作が効かない残り時間（秒）
 }
 
 // ゲーム全体の状態。step 関数でこれを1コマずつ更新する
