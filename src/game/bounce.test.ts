@@ -116,4 +116,17 @@ describe('横からぶつかると弾かれる', () => {
     for (let i = 0; i < 60; i++) s = step(s, {}, FIXED_DT)
     expect(get(s, 'A').y).toBe(0)
   })
+
+  it('頭の端に浅く着地して滑り落ちたときは、横の衝突として弾かれない', () => {
+    // A は B の右端に浅くかかる位置へ、左向きの強い勢いで落ちてくる（ブラウザ確認で見つかった条件）
+    let s = setup({ A: { x: 336, y: 40.3 }, B: { x: 300, y: 0 } })
+    const a = s.players.find((p) => p.playerId === 'A')!
+    a.vx = -200
+    a.grounded = false
+    for (let i = 0; i < 60; i++) s = step(s, {}, FIXED_DT)
+    expect(get(s, 'A').stunTime).toBe(0)
+    expect(get(s, 'B').stunTime).toBe(0)
+    expect(get(s, 'A').y).toBe(0) // 地面に降りている
+    expect(get(s, 'A').x).toBeGreaterThanOrEqual(get(s, 'B').x + PLAYER_SIZE - 0.01) // B の右隣
+  })
 })
