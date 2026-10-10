@@ -16,6 +16,7 @@ export type PlayerState = {
   vy: number // 縦方向の速度（上が正、ピクセル/秒）
   facing: 1 | -1 // 向き（右が 1）。描画で目の位置に使う
   grounded: boolean // 何かの上に立っているか（ジャンプできるか）
+  standingOn: string | null // 誰の頭の上に立っているか（playerId）。地面や空中なら null
   jumpHeld: boolean // 前のコマでジャンプボタンが押されていたか（押した瞬間を見分けるため）
   jumpBuffer: number // ジャンプ入力の猶予の残り時間（秒）
 }
