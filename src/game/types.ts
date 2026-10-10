@@ -14,6 +14,10 @@ export type PlayerState = {
   y: number // キャラの足元の高さ（地面の上面が 0）
   vx: number // 横方向の速度（右が正、ピクセル/秒）
   vy: number // 縦方向の速度（上が正、ピクセル/秒）
+  facing: 1 | -1 // 向き（右が 1）。描画で目の位置に使う
+  grounded: boolean // 何かの上に立っているか（ジャンプできるか）
+  jumpHeld: boolean // 前のコマでジャンプボタンが押されていたか（押した瞬間を見分けるため）
+  jumpBuffer: number // ジャンプ入力の猶予の残り時間（秒）
 }
 
 // ゲーム全体の状態。step 関数でこれを1コマずつ更新する

@@ -47,6 +47,8 @@ src/
   game/                    # ゲームの中身（芦田担当）。通信には触らない
     GameScreen.tsx         # 1試合分のゲーム画面（players / getInputs / onFinish を受け取る）
     step.ts                # 物理：状態を1コマ進める純粋な関数
+    physics.ts             # 1人分の物理（入力→速度、重力・地面・壁）
+    keyboard.ts            # 開発用のキーボード操作（スマホの代わり）
     state.ts               # 初期状態の生成、終了時の高さの取り出し
     render.ts              # Canvas への描画
     constants.ts           # ステージの大きさ、制限時間など
