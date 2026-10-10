@@ -4,6 +4,7 @@
 
 - 仕様：[初期構想.md](初期構想.md)
 - タスク：[タスク.md](タスク.md)
+- 公開URL：https://workworkpark.vercel.app （PC画面）／ https://workworkpark.vercel.app/controller （スマホ）
 
 ## 前提条件
 
