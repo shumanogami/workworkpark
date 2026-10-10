@@ -1,0 +1,27 @@
+# 依存パッケージ（npm install で復元できる）
+node_modules
+
+# ビルド結果
+dist
+dist-ssr
+
+# 環境変数（Supabaseのキーなど）。公開リポジトリなので絶対にコミットしない
+.env
+.env.local
+.env.*.local
+*.local
+
+# Vercel CLI の設定
+.vercel
+
+# ログ
+logs
+*.log
+npm-debug.log*
+
+# エディタ・OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
