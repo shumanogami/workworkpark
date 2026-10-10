@@ -45,6 +45,13 @@ src/
   pages/
     HostPage.tsx           # PC：ホーム・ゲーム・リザルト
     ControllerPage.tsx     # スマホ：コントローラー（?room=ABCD でルーム指定）
+  game/                    # ゲームの中身（芦田担当）。通信には触らない
+    GameScreen.tsx         # 1試合分のゲーム画面（players / getInputs / onFinish を受け取る）
+    step.ts                # 物理：状態を1コマ進める純粋な関数
+    state.ts               # 初期状態の生成、終了時の高さの取り出し
+    render.ts              # Canvas への描画
+    constants.ts           # ステージの大きさ、制限時間など
+    DevGamePage.tsx        # 開発用（/dev/game）：通信なしでゲーム画面だけを確認する
   lib/
     supabase.ts            # Supabase クライアント（環境変数が未設定なら起動時にエラー）
   shared/
