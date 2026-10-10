@@ -1,5 +1,6 @@
 import {
   AIR_ACCEL,
+  CEILING_Y,
   GRAVITY,
   GROUND_ACCEL,
   JUMP_BUFFER_TIME,
@@ -7,6 +8,7 @@ import {
   MOVE_SPEED,
   PLAYER_SIZE,
   STAGE_WIDTH,
+  SUPPORT_JUMP_BONUS,
   WALL_WIDTH,
 } from './constants'
 import type { InputMessage } from '../shared/messages'
@@ -38,11 +40,12 @@ export function applyInput(
   // ジャンプは「押した瞬間」だけ受け付ける（押しっぱなしで連続ジャンプしないように）
   const jumpNow = !!input?.jump
   const pressed = jumpNow && !p.jumpHeld
-  let jumpBuffer = pressed ? JUMP_BUFFER_TIME : Math.max(0, p.jumpBuffer - dt)
+  // 弾かれている間に押したジャンプは先行入力として覚えない（操作が戻った瞬間に勝手に跳ばないように）
+  let jumpBuffer = stunned ? 0 : pressed ? JUMP_BUFFER_TIME : Math.max(0, p.jumpBuffer - dt)
 
   let vy = p.vy
   if (jumpBuffer > 0 && p.grounded && !stunned) {
-    vy = JUMP_SPEED + Math.max(0, supportVy)
+    vy = JUMP_SPEED + SUPPORT_JUMP_BONUS * Math.max(0, supportVy)
     jumpBuffer = 0
   }
 
@@ -71,6 +74,12 @@ export function integrate(p: PlayerState, dt: number, carryDx = 0): PlayerState 
     y = 0
     vy = 0
     grounded = true
+  }
+
+  // 天井：画面の上端より上には行かない
+  if (y > CEILING_Y) {
+    y = CEILING_Y
+    vy = Math.min(vy, 0)
   }
 
   // 誰の上に立っているかは、このあとのプレイヤー同士の当たり判定で決め直す

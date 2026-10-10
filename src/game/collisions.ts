@@ -1,4 +1,11 @@
-import { BOUNCE_VX, BOUNCE_VY, KNOCKBACK_TIME, MOVING_THRESHOLD, PLAYER_SIZE } from './constants'
+import {
+  BOUNCE_VX,
+  BOUNCE_VY,
+  KNOCKBACK_TIME,
+  MIN_STAND_OVERLAP,
+  MOVING_THRESHOLD,
+  PLAYER_SIZE,
+} from './constants'
 import { clampToWalls } from './physics'
 import type { PlayerState } from './types'
 
@@ -7,10 +14,6 @@ const MAX_ITERATIONS = 4
 
 // 小数の誤差で「上にいた」の判定が揺れないようにする許容幅（ピクセル）
 const EPSILON = 0.01
-
-// 頭の上に立つのに必要な、横方向の重なりの最小幅（ピクセル）
-// これより浅く頭の端にかかっただけだと、宙に浮いて立っているように見えるため、滑り落とす
-const MIN_STAND_OVERLAP = PLAYER_SIZE / 4
 
 function overlaps(a: PlayerState, b: PlayerState): boolean {
   return Math.abs(a.x - b.x) < PLAYER_SIZE && Math.abs(a.y - b.y) < PLAYER_SIZE

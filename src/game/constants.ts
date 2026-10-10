@@ -46,3 +46,14 @@ export const KNOCKBACK_TIME = 0.35
 
 // 「動いている」とみなす横方向の速さ（ピクセル/秒）。これ以下同士で重なったときは弾かずに押し離すだけ
 export const MOVING_THRESHOLD = 20
+
+// 上昇中の人の頭からジャンプしたとき、下の人の上昇速度を何割上乗せするか（未決定仕様 U6）
+// そのまま足すと画面の外まで飛び出すため、割合を抑える
+export const SUPPORT_JUMP_BONUS = 0.4
+
+// 頭の上に立つのに必要な、横方向の重なりの最小幅（ピクセル）
+// これより浅く頭の端にかかっただけだと、宙に浮いて立っているように見えるため、滑り落とす（U5）
+export const MIN_STAND_OVERLAP = PLAYER_SIZE / 4
+
+// 足元の高さの上限＝画面の上端（未決定仕様 U10）。これより上に行くと画面に映らなくなるため、見えない天井で止める
+export const CEILING_Y = STAGE_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE

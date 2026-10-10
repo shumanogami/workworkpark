@@ -98,4 +98,22 @@ describe('横からぶつかると弾かれる', () => {
     expect(get(s, 'A').stunTime).toBe(0)
     expect(get(s, 'B').stunTime).toBe(0)
   })
+
+  it('上に人を乗せた人が弾かれると、上の人は乗ったまま一緒に飛ばされる（U11）', () => {
+    let s = step(setup({ C: { x: 200, y: 0 }, A: { x: 300, y: PLAYER_SIZE }, B: { x: 300, y: 0 } }), {}, FIXED_DT)
+    s = runUntilBounce(s, press('C', { right: true }), 2)
+    for (let i = 0; i < 15; i++) s = step(s, {}, FIXED_DT)
+    expect(get(s, 'B').x).toBeGreaterThan(330) // B は右へ飛ばされている
+    expect(get(s, 'A').standingOn).toBe('B')
+    expect(get(s, 'A').x).toBeCloseTo(get(s, 'B').x, 0) // 1px 未満のずれは許す
+    expect(get(s, 'A').stunTime).toBe(0) // 上の人は操作不能にはならない
+  })
+
+  it('弾かれている間に押したジャンプは、操作が戻っても跳ばない', () => {
+    let s = runUntilBounce(setup({ A: { x: 300, y: 0 }, B: { x: 400, y: 0 } }), press('A', { right: true }), 2)
+    // 操作不能の間ずっとジャンプを押し、戻る直前に離す
+    while (get(s, 'A').stunTime > FIXED_DT) s = step(s, press('A', { jump: true }), FIXED_DT)
+    for (let i = 0; i < 60; i++) s = step(s, {}, FIXED_DT)
+    expect(get(s, 'A').y).toBe(0)
+  })
 })

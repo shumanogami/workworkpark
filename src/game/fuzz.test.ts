@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIXED_DT, GAME_DURATION, PLAYER_SIZE, STAGE_WIDTH, WALL_WIDTH } from './constants'
+import { CEILING_Y, FIXED_DT, GAME_DURATION, PLAYER_SIZE, STAGE_WIDTH, WALL_WIDTH } from './constants'
 import { createInitialState } from './state'
 import { step } from './step'
 import type { Inputs } from './types'
@@ -36,6 +36,13 @@ describe('8人がでたらめに操作しても壊れない', () => {
       for (const p of s.players) {
         expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true)
         expect(p.y).toBeGreaterThanOrEqual(0)
+        expect(p.y).toBeLessThanOrEqual(CEILING_Y)
+        // 「誰の上に立っているか」は、実際にその人の頭の上に接している相手を指している
+        if (p.standingOn) {
+          const support = s.players.find((q) => q.playerId === p.standingOn)!
+          expect(p.y).toBeCloseTo(support.y + PLAYER_SIZE, 1)
+          expect(Math.abs(p.x - support.x)).toBeLessThan(PLAYER_SIZE)
+        }
         expect(p.x).toBeGreaterThanOrEqual(WALL_WIDTH)
         expect(p.x).toBeLessThanOrEqual(STAGE_WIDTH - WALL_WIDTH - PLAYER_SIZE)
       }

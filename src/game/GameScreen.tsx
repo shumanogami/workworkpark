@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FIXED_DT, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
 import { render } from './render'
 import { createInitialState, getHeights } from './state'
@@ -6,7 +6,7 @@ import { step } from './step'
 import type { GamePlayer, Heights, Inputs } from './types'
 
 type Props = {
-  players: GamePlayer[] // 参加者（野上側 → 芦田側）
+  players: GamePlayer[] // 参加者（野上側 → 芦田側）。最初に表示したときの値で試合を行い、途中の変更は反映しない
   getInputs: () => Inputs // 今のボタン状態（物理を1コマ進めるたびに呼ぶ）
   onFinish: (heights: Heights) => void // 10秒経ったら1回だけ呼ぶ
 }
@@ -14,6 +14,9 @@ type Props = {
 // 1試合分のゲーム画面。もう一度遊ぶときは、親が key を変えて作り直す
 export default function GameScreen({ players, getInputs, onFinish }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // 参加者は最初の値で固定する。親が再描画のたびに新しい配列を渡しても、試合がやり直しにならないように
+  const [initialPlayers] = useState(players)
 
   // 親の再描画で関数が作り直されてもゲームループを再起動しないよう、最新の関数を ref 経由で参照する
   const getInputsRef = useRef(getInputs)
@@ -28,7 +31,7 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     if (!ctx) return
 
     // 状態はこの effect の中だけで持つ。StrictMode で effect が2回走っても、毎回まっさらな試合から始まる
-    let state = createInitialState(players)
+    let state = createInitialState(initialPlayers)
     let lastTime: number | null = null
     let accumulator = 0
     let rafId = 0
@@ -57,7 +60,7 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
 
     // 画面を離れたら必ずループを止める（止め忘れると二重に動く）
     return () => cancelAnimationFrame(rafId)
-  }, [players])
+  }, [initialPlayers])
 
   return (
     <canvas
