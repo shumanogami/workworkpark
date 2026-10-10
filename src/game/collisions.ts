@@ -8,6 +8,10 @@ const MAX_ITERATIONS = 4
 // 小数の誤差で「上にいた」の判定が揺れないようにする許容幅（ピクセル）
 const EPSILON = 0.01
 
+// 頭の上に立つのに必要な、横方向の重なりの最小幅（ピクセル）
+// これより浅く頭の端にかかっただけだと、宙に浮いて立っているように見えるため、滑り落とす
+const MIN_STAND_OVERLAP = PLAYER_SIZE / 4
+
 function overlaps(a: PlayerState, b: PlayerState): boolean {
   return Math.abs(a.x - b.x) < PLAYER_SIZE && Math.abs(a.y - b.y) < PLAYER_SIZE
 }
@@ -26,6 +30,18 @@ function landOn(top: PlayerState, bottom: PlayerState): PlayerState {
     grounded: true,
     standingOn: bottom.playerId,
   }
+}
+
+// top が bottom の上から重なったとき：頭の端に浅くかかっただけなら横に滑り落とし、十分に乗っていれば立たせる
+function landOrSlideOff(top: PlayerState, bottom: PlayerState): PlayerState {
+  const overlapX = PLAYER_SIZE - Math.abs(top.x - bottom.x)
+  if (overlapX < MIN_STAND_OVERLAP) {
+    const dir = top.x < bottom.x ? -1 : 1
+    const slid = clampToWalls({ ...top, x: bottom.x + dir * PLAYER_SIZE })
+    // 壁に阻まれて滑り落とせない場合は、そのまま立たせる
+    if (Math.abs(slid.x - bottom.x) >= PLAYER_SIZE) return slid
+  }
+  return landOn(top, bottom)
 }
 
 // 横に重なった2人を、重なりの半分ずつ左右に押し離す。壁際で片方が動けない分は、もう片方が引き受ける
@@ -69,9 +85,9 @@ export function resolvePlayerCollisions(
         resolvedAny = true
 
         if (wasAbove(prev[j], prev[i])) {
-          ps[j] = landOn(ps[j], ps[i])
+          ps[j] = landOrSlideOff(ps[j], ps[i])
         } else if (wasAbove(prev[i], prev[j])) {
-          ps[i] = landOn(ps[i], ps[j])
+          ps[i] = landOrSlideOff(ps[i], ps[j])
         } else {
           ;[ps[i], ps[j]] = sideways(ps[i], ps[j])
         }
