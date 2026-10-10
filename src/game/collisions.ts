@@ -33,7 +33,9 @@ function landOrSlideOff(top: PlayerState, bottom: PlayerState): PlayerState {
   const overlapX = PLAYER_SIZE - Math.abs(top.x - bottom.x)
   if (overlapX < MIN_STAND_OVERLAP) {
     const dir = top.x < bottom.x ? -1 : 1
-    const slid = clampToWalls({ ...top, x: bottom.x + dir * PLAYER_SIZE })
+    // 下の人へ向かう横の勢いは消す。残すと次のコマでまた横から重なり、横の衝突として扱われてしまう
+    const vx = dir < 0 ? Math.min(top.vx, 0) : Math.max(top.vx, 0)
+    const slid = clampToWalls({ ...top, x: bottom.x + dir * PLAYER_SIZE, vx })
     // 壁に阻まれて滑り落とせない場合は、そのまま立たせる
     if (Math.abs(slid.x - bottom.x) >= PLAYER_SIZE) return slid
   }
