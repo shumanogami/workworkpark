@@ -36,6 +36,13 @@ describe('頭の上に乗る', () => {
     expect(get(s, 'A').standingOn).toBe('B')
   })
 
+  it('頭の端に浅くかかっただけなら、立たずに横へ滑り落ちる', () => {
+    // A は B の右端に 5px だけかかる位置から落ちてくる
+    const s = run(setup({ A: { x: 335, y: 100 }, B: { x: 300, y: 0 } }), {}, 1)
+    expect(get(s, 'A').y).toBe(0)
+    expect(get(s, 'A').x).toBeGreaterThanOrEqual(get(s, 'B').x + PLAYER_SIZE - 0.01)
+  })
+
   it('頭の上に立ったまま、ずり落ちない', () => {
     const s = run(setup({ A: { x: 300, y: PLAYER_SIZE }, B: { x: 300, y: 0 } }), {}, 3)
     expect(get(s, 'A').y).toBeCloseTo(PLAYER_SIZE)
