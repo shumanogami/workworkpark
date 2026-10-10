@@ -35,6 +35,10 @@ npm run lint     # oxlint
 ## ディレクトリ構成
 
 ```
+docs/
+  初期構想.md              # 仕様の正
+  タスク.md                # タスク一覧と担当
+  環境確認.md              # メンバーごとの開発環境の確認結果
 src/
   main.tsx                 # ルーティング：/ → PC画面、/controller → スマホ画面
   pages/
