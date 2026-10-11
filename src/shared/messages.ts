@@ -39,6 +39,8 @@ export type PhaseMessage = {
 }
 
 // Presence でスマホが自分の情報として登録する内容
+// 名前を変えたら、スマホが track でこの内容を登録し直す。PCは Presence の変化を受け取って表示を更新する
 export type PlayerPresence = {
   playerId: string
+  name?: string // プレイヤー名（最大8文字）。空・なしなら PC は「{番号}P」と表示する
 }

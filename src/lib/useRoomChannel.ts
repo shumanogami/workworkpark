@@ -1,6 +1,7 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 import { EVENTS, type PlayerPresence } from '../shared/messages'
+import { namesFromPresence } from './playerName'
 import { roomTopic } from './room'
 import { supabase } from './supabase'
 
@@ -15,14 +16,18 @@ export type EventName = (typeof EVENTS)[keyof typeof EVENTS]
 // - スマホ：playerId を渡す。自分を参加者として登録（track）する
 // channel は T4 で入力の送受信（Broadcast）に使う
 // onBroadcast：Broadcast（EVENTS のいずれか）を受け取ったときに呼ぶ。再描画で関数が変わっても再接続しない
+// name：スマホのプレイヤー名。変わったら、つなぎ直さずに Presence の登録内容だけを更新する
+// 返り値の names：PC用。playerId → 名前（名前を付けていない人は入らない）
 export function useRoomChannel(
   roomCode: string | null,
   playerId?: string,
   onBroadcast?: (event: EventName, payload: unknown) => void,
+  name?: string,
 ) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
   const [status, setStatus] = useState<ChannelStatus>('connecting')
   const [presentIds, setPresentIds] = useState<string[]>([])
+  const [names, setNames] = useState<Record<string, string>>({})
 
   const onBroadcastRef = useRef(onBroadcast)
   useEffect(() => {
@@ -57,17 +62,15 @@ export function useRoomChannel(
       created
         .on('presence', { event: 'sync' }, () => {
           if (cancelled) return
-          setPresentIds(Object.keys(created.presenceState()))
+          const state = created.presenceState()
+          setPresentIds(Object.keys(state))
+          setNames(namesFromPresence(state))
         })
-        .subscribe(async (s) => {
+        .subscribe((s) => {
           if (cancelled) return
           if (s === 'SUBSCRIBED') {
             setStatus('connected')
             setChannel(created)
-            if (playerId) {
-              const presence: PlayerPresence = { playerId }
-              await created.track(presence)
-            }
           } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
             setStatus('retrying')
           }
@@ -80,9 +83,17 @@ export function useRoomChannel(
       setChannel(null)
       setStatus('connecting')
       setPresentIds([])
+      setNames({})
       if (ch) void supabase.removeChannel(ch)
     }
   }, [roomCode, playerId])
 
-  return { channel, status, presentIds }
+  // スマホ：つながったとき、名前を変えたときに、自分の情報を Presence に登録する（同じ key なら上書きされる）
+  useEffect(() => {
+    if (!channel || !playerId) return
+    const presence: PlayerPresence = { playerId, ...(name ? { name } : {}) }
+    void channel.track(presence)
+  }, [channel, playerId, name])
+
+  return { channel, status, presentIds, names }
 }
