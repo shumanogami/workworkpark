@@ -2,12 +2,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { installAudioUnlock } from './audio/audio'
+import PlatformDemoPage from './engine/PlatformDemoPage.tsx'
 import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerPage from './pages/ControllerPage.tsx'
 import HostPage from './pages/HostPage.tsx'
-import PlatformDemoPage from './engine/PlatformDemoPage.tsx'
 
 // ブラウザは利用者が操作するまで音を鳴らせないため、最初のクリック・タップ・キー入力で音を有効にする
 installAudioUnlock()
@@ -20,12 +20,12 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<HostPage />} />
         {/* スマホ：コントローラー（QRコードから ?room=ABCD 付きで開く） */}
         <Route path="/controller" element={<ControllerPage />} />
-        {/* 開発用：足場（乗れる雲）の動きを確認する（今後のゲームで使う部品） */}
-        <Route path="/dev/platforms" element={<PlatformDemoPage />} />
         {/* 開発用：通信なしでゲーム画面だけを確認する */}
         <Route path="/dev/game" element={<DevGamePage />} />
         {/* 開発用：横・縦スクロールの動きを確認する（今後のゲームで使う部品） */}
         <Route path="/dev/scroll" element={<ScrollDemoPage />} />
+        {/* 開発用：足場（乗れる雲）の動きを確認する（今後のゲームで使う部品） */}
+        <Route path="/dev/platforms" element={<PlatformDemoPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

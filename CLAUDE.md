@@ -68,6 +68,8 @@ src/
   engine/                  # 複数のゲームで使い回す部品（特定のゲームの物理・描画に依存しない）
     scroll.ts              # 横・縦スクロール（時間とともに速くなり最高速度で頭打ち、ワールド座標→画面座標）
     ScrollDemoPage.tsx     # 開発用（/dev/scroll）：スクロールの動きを確認する
+    platforms.ts           # 足場（下からすり抜け、上から乗れる雲など）に乗る・運ばれる・降りる処理
+    PlatformDemoPage.tsx   # 開発用（/dev/platforms）：足場の動きを確認する（見た目は仮）
   shared/
     messages.ts            # スマホ⇔PC間のメッセージの型（通信の取り決め）
 ```
