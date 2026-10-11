@@ -57,6 +57,9 @@ src/
     DevGamePage.tsx        # 開発用（/dev/game）：通信なしでゲーム画面だけを確認する
   lib/
     supabase.ts            # Supabase クライアント（環境変数が未設定なら起動時にエラー）
+    room.ts                # ルームコード・playerId の生成と保存（sessionStorage）
+    useRoomChannel.ts      # ルームのチャンネルへの参加と Presence（接続中のスマホ一覧）
+    players.ts             # 参加者への番号と色の割り当て（PCだけが行う）
   shared/
     messages.ts            # スマホ⇔PC間のメッセージの型（通信の取り決め）
 ```
