@@ -25,10 +25,10 @@ export const JUMPER: JumperConfig = {
 export const SCROLL: ScrollConfig = {
   axis: 'vertical',
   direction: 1,
-  initialSpeed: 30,
+  initialSpeed: 20,
   phases: [
-    { acceleration: 3, maxSpeed: 150 },
-    { acceleration: 6, maxSpeed: 260 },
+    { acceleration: 1.6, maxSpeed: 130 },
+    { acceleration: 5, maxSpeed: 240 },
   ],
 }
 
@@ -42,7 +42,7 @@ export const MAGMA_DEPTH_SECONDS = 40 // この秒数で最大まで上がる
 
 export const PLATFORM_HEIGHT = 16 // 足場の厚み（見た目だけ。乗る判定は上面）
 // この高さ（スタートから登った距離）で一番難しくなる。マグマの速さから、およそ30〜35秒
-export const HARD_HEIGHT = 4000
+export const HARD_HEIGHT = 3000
 // ジャンプで届く範囲。ジャンプの最高到達点は約140px。余裕を持たせて、これより狭い範囲に置く
 export const MAX_RISE = 105 // 段と段の高さの差の上限
 export const MAX_EDGE_GAP = 90 // 足場の端と端の横の隙間の上限

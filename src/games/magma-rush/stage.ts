@@ -14,7 +14,7 @@ export type StageGen = {
 
 const LEFT = WALL_WIDTH
 const RIGHT = STAGE_WIDTH - WALL_WIDTH
-const EASY_ROWS = 3 // 最初の何段かは足場を多めにして登りやすくする
+const EASY_ROWS = 5 // 最初の何段かは足場を多めにして登りやすくする
 const MIN_SPACING = 40 // 同じ段の足場どうしの最小の隙間（くっついて1枚に見えないように）
 
 // 乱数（mulberry32）。種を受け取り、0以上1未満の数と次の種を返す
@@ -73,7 +73,7 @@ function makeRow(gen: StageGen): { gen: StageGen; platforms: Platform[] } {
   const y = Math.round(gen.nextY - rise)
   // 足場の数：最初は多め、だんだん減って最後は1〜2個
   const count = easy ? 4 : d < 0.25 ? 3 : d < 0.6 ? 2 : rand() < 0.5 ? 1 : 2
-  const width = () => Math.round(Math.max(between(lerp(130, 80, d), lerp(170, 110, d)), 70))
+  const width = () => Math.round(Math.max(between(lerp(115, 70, d), lerp(155, 100, d)), 60))
   const id = (i: number) => `r${gen.rows}-${i}`
 
   // 1つ目：通り道になる足場。1つ下の段のどれかから、左右どちらかへずらして置く
