@@ -7,11 +7,17 @@
 // horizontal：横スクロール、vertical：縦スクロール
 export type ScrollAxis = 'horizontal' | 'vertical'
 
-// 速さの上がり方の1段階。前の段階の上限から、acceleration の割合で maxSpeed まで速くなる
-export type SpeedPhase = {
-  acceleration: number // 1秒ごとに速くなる量（ピクセル/秒²）
-  maxSpeed: number // この段階の上限（ピクセル/秒）。届いたら次の段階へ進む
-}
+// 速さの上がり方の1段階。次の2種類がある
+// - 加速：前の段階の速さから、acceleration の割合で maxSpeed まで速くなる。届いたら次の段階へ進む
+// - 維持：今の速さのまま holdSeconds 秒進む
+export type SpeedPhase =
+  | {
+      acceleration: number // 1秒ごとに速くなる量（ピクセル/秒²）
+      maxSpeed: number // この段階の上限（ピクセル/秒）
+    }
+  | {
+      holdSeconds: number // 今の速さを保つ秒数
+    }
 
 export type ScrollConfig = {
   axis: ScrollAxis
@@ -35,8 +41,8 @@ export const DEFAULT_HORIZONTAL: ScrollConfig = {
   ],
 }
 
-// 縦：16秒で 200 px/秒まで → そこから急に加速し、20秒で 300 px/秒
-// （1200 px/秒も試したが速すぎたため 300 にした。2026-10-11 芦田）
+// 縦：16秒で 200 px/秒まで → 急に加速して20秒で 300 px/秒 → 25秒まで 300 のまま → 加速して45秒で 400 px/秒
+// （1200 px/秒も試したが速すぎたため、ゆるやかに上げる形にした。2026-10-11 芦田）
 export const DEFAULT_VERTICAL: ScrollConfig = {
   axis: 'vertical',
   direction: 1,
@@ -44,6 +50,8 @@ export const DEFAULT_VERTICAL: ScrollConfig = {
   phases: [
     { acceleration: 10, maxSpeed: 200 },
     { acceleration: 25, maxSpeed: 300 },
+    { holdSeconds: 5 },
+    { acceleration: 5, maxSpeed: 400 },
   ],
 }
 
@@ -62,6 +70,13 @@ function segments(config: ScrollConfig): Segment[] {
   let start = 0
   let speed = config.initialSpeed
   for (const phase of config.phases) {
+    if ('holdSeconds' in phase) {
+      if (phase.holdSeconds > 0) {
+        result.push({ start, duration: phase.holdSeconds, speed, acceleration: 0 })
+        start += phase.holdSeconds
+      }
+      continue
+    }
     // 加速しない段階や、すでに上限を超えている段階は飛ばす
     if (phase.acceleration <= 0 || phase.maxSpeed <= speed) continue
     const duration = (phase.maxSpeed - speed) / phase.acceleration

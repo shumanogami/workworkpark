@@ -59,12 +59,24 @@ describe('段階ごとの加速（横・縦の初期設定）', () => {
     expect(topSpeed(DEFAULT_HORIZONTAL)).toBe(500)
   })
 
-  it('縦：16秒で200まではそれまでどおり、そこから急に加速して20秒で300、その後は300のまま', () => {
+  it('縦：16秒で200 → 20秒で300 → 25秒まで300のまま → 45秒で400、その後は400のまま', () => {
     expect(speedAt(DEFAULT_VERTICAL, 16)).toBeCloseTo(200)
     expect(speedAt(DEFAULT_VERTICAL, 18)).toBeCloseTo(250) // 2段目（1秒に25ずつ）
     expect(speedAt(DEFAULT_VERTICAL, 20)).toBeCloseTo(300)
-    expect(speedAt(DEFAULT_VERTICAL, 60)).toBe(300)
-    expect(topSpeed(DEFAULT_VERTICAL)).toBe(300)
+    expect(speedAt(DEFAULT_VERTICAL, 22.5)).toBeCloseTo(300) // 維持
+    expect(speedAt(DEFAULT_VERTICAL, 25)).toBeCloseTo(300)
+    expect(speedAt(DEFAULT_VERTICAL, 35)).toBeCloseTo(350) // 4段目（1秒に5ずつ）
+    expect(speedAt(DEFAULT_VERTICAL, 45)).toBeCloseTo(400)
+    expect(speedAt(DEFAULT_VERTICAL, 90)).toBe(400)
+    expect(topSpeed(DEFAULT_VERTICAL)).toBe(400)
+  })
+
+  it('縦：速さを保つ段階をはさんでも、進んだ距離が飛んだりしない', () => {
+    let sum = 0
+    const steps = 50 * 600
+    const dt = 50 / steps
+    for (let i = 0; i < steps; i++) sum += speedAt(DEFAULT_VERTICAL, (i + 0.5) * dt) * dt
+    expect(offsetAt(DEFAULT_VERTICAL, 50)).toBeCloseTo(sum, 0)
   })
 
   it('段階の切り替わりで、進んだ距離が飛んだりしない（速さの積み重ねと一致する）', () => {
