@@ -7,10 +7,13 @@ import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import { EVENTS, type NameMessage, type Phase, type PhaseMessage, type PlayerInfo } from '../shared/messages'
 
+// 細かい言い回しは M9（スマホの表示の対応）で決める
 const PHASE_LABEL: Record<Phase, string> = {
   lobby: 'PCの画面でスタートを待ってね',
   playing: 'ゲーム中！',
+  miniResult: 'ラウンド結果！PCの画面を見てね',
   result: '結果発表！PCの画面を見てね',
+  champion: '優勝者が決まった！PCの画面を見てね',
 }
 
 // スマホ側のコントローラー画面。ラフ画どおり、上に自分の番号（自分の色）、左に ←→、右にジャンプ
