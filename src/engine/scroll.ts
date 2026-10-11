@@ -35,14 +35,15 @@ export const DEFAULT_HORIZONTAL: ScrollConfig = {
   ],
 }
 
-// 縦：16秒で 200 px/秒まで → そこから急に加速し、20秒で 1200 px/秒（1秒で画面2枚分以上流れる、ありえない速さ）
+// 縦：16秒で 200 px/秒まで → そこから急に加速し、20秒で 300 px/秒
+// （1200 px/秒も試したが速すぎたため 300 にした。2026-10-11 芦田）
 export const DEFAULT_VERTICAL: ScrollConfig = {
   axis: 'vertical',
   direction: 1,
   initialSpeed: 40,
   phases: [
     { acceleration: 10, maxSpeed: 200 },
-    { acceleration: 250, maxSpeed: 1200 },
+    { acceleration: 25, maxSpeed: 300 },
   ],
 }
 

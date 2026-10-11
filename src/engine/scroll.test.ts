@@ -59,10 +59,12 @@ describe('段階ごとの加速（横・縦の初期設定）', () => {
     expect(topSpeed(DEFAULT_HORIZONTAL)).toBe(500)
   })
 
-  it('縦：16秒で200まではそれまでどおり、そこから急に加速して20秒で1200', () => {
+  it('縦：16秒で200まではそれまでどおり、そこから急に加速して20秒で300、その後は300のまま', () => {
     expect(speedAt(DEFAULT_VERTICAL, 16)).toBeCloseTo(200)
-    expect(speedAt(DEFAULT_VERTICAL, 20)).toBeCloseTo(1200)
-    expect(speedAt(DEFAULT_VERTICAL, 60)).toBe(1200)
+    expect(speedAt(DEFAULT_VERTICAL, 18)).toBeCloseTo(250) // 2段目（1秒に25ずつ）
+    expect(speedAt(DEFAULT_VERTICAL, 20)).toBeCloseTo(300)
+    expect(speedAt(DEFAULT_VERTICAL, 60)).toBe(300)
+    expect(topSpeed(DEFAULT_VERTICAL)).toBe(300)
   })
 
   it('段階の切り替わりで、進んだ距離が飛んだりしない（速さの積み重ねと一致する）', () => {
