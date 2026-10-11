@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { installAudioUnlock } from './audio/audio'
+import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerPage from './pages/ControllerPage.tsx'
@@ -20,6 +21,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/controller" element={<ControllerPage />} />
         {/* 開発用：通信なしでゲーム画面だけを確認する */}
         <Route path="/dev/game" element={<DevGamePage />} />
+        {/* 開発用：横・縦スクロールの動きを確認する（今後のゲームで使う部品） */}
+        <Route path="/dev/scroll" element={<ScrollDemoPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
