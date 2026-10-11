@@ -8,11 +8,18 @@ import {
   speedAt,
   stepScroll,
   toScreen,
+  topSpeed,
   visibleRange,
   wrapOffset,
 } from './scroll'
 
-const config: ScrollConfig = { axis: 'horizontal', direction: 1, initialSpeed: 60, acceleration: 15, maxSpeed: 300 }
+// 1段階だけの設定（60 から 1秒に15ずつ速くなり、300 で頭打ち）
+const config: ScrollConfig = {
+  axis: 'horizontal',
+  direction: 1,
+  initialSpeed: 60,
+  phases: [{ acceleration: 15, maxSpeed: 300 }],
+}
 
 describe('speedAt（時間とともに速くなる）', () => {
   it('始まりは初速、1秒ごとに加速度の分だけ速くなる', () => {
@@ -38,7 +45,46 @@ describe('offsetAt（進んだ距離）', () => {
   })
 
   it('加速しない設定なら一定の速さで進む', () => {
-    expect(offsetAt({ ...config, acceleration: 0 }, 10)).toBeCloseTo(600)
+    expect(offsetAt({ ...config, phases: [] }, 10)).toBeCloseTo(600)
+  })
+})
+
+describe('段階ごとの加速（横・縦の初期設定）', () => {
+  it('横：16秒で300まではそれまでどおり、そこから急に加速して20秒で500、その後は500のまま', () => {
+    expect(speedAt(DEFAULT_HORIZONTAL, 8)).toBeCloseTo(180) // 1段目（1秒に15ずつ）
+    expect(speedAt(DEFAULT_HORIZONTAL, 16)).toBeCloseTo(300)
+    expect(speedAt(DEFAULT_HORIZONTAL, 18)).toBeCloseTo(400) // 2段目（1秒に50ずつ）
+    expect(speedAt(DEFAULT_HORIZONTAL, 20)).toBeCloseTo(500)
+    expect(speedAt(DEFAULT_HORIZONTAL, 60)).toBe(500)
+    expect(topSpeed(DEFAULT_HORIZONTAL)).toBe(500)
+  })
+
+  it('縦：16秒で200まではそれまでどおり、そこから急に加速して20秒で1200', () => {
+    expect(speedAt(DEFAULT_VERTICAL, 16)).toBeCloseTo(200)
+    expect(speedAt(DEFAULT_VERTICAL, 20)).toBeCloseTo(1200)
+    expect(speedAt(DEFAULT_VERTICAL, 60)).toBe(1200)
+  })
+
+  it('段階の切り替わりで、進んだ距離が飛んだりしない（速さの積み重ねと一致する）', () => {
+    let sum = 0
+    const steps = 25 * 600
+    const dt = 25 / steps
+    // 小数の足し算で回数がずれないよう、回数で回す
+    for (let i = 0; i < steps; i++) sum += speedAt(DEFAULT_HORIZONTAL, (i + 0.5) * dt) * dt
+    expect(offsetAt(DEFAULT_HORIZONTAL, 25)).toBeCloseTo(sum, 0)
+  })
+
+  it('すでに超えている上限や、加速しない段階は飛ばす', () => {
+    const c: ScrollConfig = {
+      ...config,
+      phases: [
+        { acceleration: 15, maxSpeed: 30 }, // 初速 60 より低い上限
+        { acceleration: 0, maxSpeed: 1000 }, // 加速しない
+        { acceleration: 10, maxSpeed: 100 },
+      ],
+    }
+    expect(speedAt(c, 2)).toBeCloseTo(80)
+    expect(topSpeed(c)).toBe(100)
   })
 })
 
@@ -47,7 +93,7 @@ describe('stepScroll', () => {
     let s = createScroll(config)
     for (let i = 0; i < 60 * 20; i++) s = stepScroll(s, config, 1 / 60)
     expect(s.offset).toBeCloseTo(offsetAt(config, 20), 3)
-    expect(s.speed).toBe(300)
+    expect(s.speed).toBeCloseTo(300)
   })
 
   it('進む距離は増え続ける（止まったり戻ったりしない）', () => {

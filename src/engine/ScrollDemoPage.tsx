@@ -7,6 +7,7 @@ import {
   type ScrollState,
   stepScroll,
   toScreen,
+  topSpeed,
   visibleRange,
   wrapOffset,
 } from './scroll'
@@ -78,7 +79,7 @@ export default function ScrollDemoPage() {
         </button>
       </div>
       <p className="text-neutral-300">
-        経過 {hud.elapsed.toFixed(1)} 秒 ／ 速さ {Math.round(hud.speed)} px/秒（最高 {config.maxSpeed}）／ 進んだ距離{' '}
+        経過 {hud.elapsed.toFixed(1)} 秒 ／ 速さ {Math.round(hud.speed)} px/秒（最高 {topSpeed(config)}）／ 進んだ距離{' '}
         {Math.round(hud.offset)} px
       </p>
     </main>
