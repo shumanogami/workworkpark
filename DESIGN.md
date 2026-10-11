@@ -97,6 +97,10 @@
 | `colors.character.eyeWhite` | `#ffffff` | キャラの白目 |
 | `colors.character.eye` | `#1a1a1a` | キャラの黒目・目を閉じた線 |
 | `colors.character.mouth` | `#8a2a2a` | キャラの口 |
+| `colors.canyon.back` | `#2c1408` | マグマラッシュ：峡谷の奥（背景） |
+| `colors.canyon.wall` | `#503000` | マグマラッシュ：奥の岩壁 |
+| `colors.canyon.ledge` / `ledgeTop` | `#7c4c1c` / `#a87c4c` | マグマラッシュ：岩の足場と、その上面 |
+| `colors.magma.main` / `surface` / `deep` | `#f83800` / `#f8b800` / `#a81000` | マグマラッシュ：マグマ・表面の波と泡・深いところ |
 | `colors.ui.countdown` | `#fcfcfc` | 3・2・1 の数字 |
 | `colors.ui.start` | `#f8b800` | START! の文字 |
 | `colors.ui.finish` | `#f83800` | FINISH の文字（1P の赤と区別するため朱色） |

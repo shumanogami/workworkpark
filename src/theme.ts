@@ -48,6 +48,9 @@ export const colors = {
   frame: { fill: famicom.white, border: navy },
   // キャラクターの体以外の色（体はプレイヤーの色）。輪郭を濃紺にそろえるかは未決定（DESIGN.md の「未決定」）
   character: { outline: '#1a1a1a', eyeWhite: '#ffffff', eye: '#1a1a1a', mouth: '#8a2a2a' },
+  // マグマラッシュ（G3）の峡谷とマグマ。背景の岩はキャラより暗く落ち着かせ、マグマだけは危険と分かるよう明るい朱色・山吹色
+  canyon: { back: '#2c1408', wall: '#503000', ledge: '#7c4c1c', ledgeTop: '#a87c4c' },
+  magma: { main: famicom.vermilion, surface: famicom.gold, deep: '#a81000' },
   ui: {
     countdown: famicom.white, // 3・2・1 の数字
     start: famicom.gold, // START! の文字
