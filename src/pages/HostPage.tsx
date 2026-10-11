@@ -30,7 +30,10 @@ const RESULT_MS = 4000
 // ラウンドの始めに、ひと言の指示（「高く跳べ！」など）を出しておく時間。カウントダウン（3・2・1）と同じ長さ（F6 の案）
 const INSTRUCTION_MS = 3000
 
-const GAME_IDS = MINI_GAMES.map((g) => g.id)
+// 開発用：URL に ?game=magma-rush を付けると、そのミニゲームだけを遊ぶ（スマホ操作で1本だけ試すため）。当てはまるものがなければ全部
+const ONLY_GAME = new URLSearchParams(location.search).get('game')
+const GAME_IDS = MINI_GAMES.filter((g) => !ONLY_GAME || g.id === ONLY_GAME).map((g) => g.id)
+if (GAME_IDS.length === 0) GAME_IDS.push(...MINI_GAMES.map((g) => g.id))
 
 // 試合の段階（match.ts）を、スマホへ送る画面の状態（messages.ts の Phase）に変える
 const PHASE_OF_STAGE: Record<MatchStage, Phase> = {
