@@ -21,8 +21,9 @@ export type InputMessage = {
   jump: boolean
 }
 
-// PC → スマホ：今の画面の状態（スマホの表示切り替えに使う）
-export type Phase = 'lobby' | 'playing' | 'result'
+// PC → スマホ：今の画面の状態（スマホの表示切り替えに使う）。流れは docs/画面遷移図.html
+// lobby：ホーム、playing：ラウンド中、miniResult：ミニリザルト（ライト）、result：リザルト（階段）、champion：総合優勝
+export type Phase = 'lobby' | 'playing' | 'miniResult' | 'result' | 'champion'
 
 // 参加者1人分の情報。番号と色はPCが決めて全員に配る
 export type PlayerInfo = {
@@ -33,10 +34,17 @@ export type PlayerInfo = {
 
 export type PhaseMessage = {
   phase: Phase
-  // result のときのみ。複数なら引き分け
+  // 勝った人（複数なら引き分け）。miniResult：そのラウンドの勝者、result：そのミニゲームの勝者（1段上がった人）、champion：総合優勝
   winnerIds?: string[]
-  // 参加者の一覧（未決定仕様 U4 の A 案）。スマホはここから自分の番号と色を探す。自分がいなければ満員
+  // 参加者の一覧（未決定仕様 U4 の A 案）。スマホはここから自分の番号と色を探す
+  // ホームでは接続中の人、試合中は試合の参加者（試合の途中で増えない）。自分がいなければ満員・試合中で参加できない
   players?: PlayerInfo[]
+  // ホーム以外：今遊んでいるミニゲームの名前と、ひと言の指示（例：「高く跳べ！」）
+  gameTitle?: string
+  instruction?: string
+  // ホーム以外：今のミニゲームでのラウンドの勝ち数（playerId → ライトの数）と、階段の段数
+  wins?: Record<string, number>
+  steps?: Record<string, number>
 }
 
 // スマホ → PC：名前を変えた瞬間に送る（PCの表示をすぐ変えるため）

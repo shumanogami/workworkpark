@@ -5,6 +5,7 @@ import { installAudioUnlock } from './audio/audio'
 import PlatformDemoPage from './engine/PlatformDemoPage.tsx'
 import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
 import SurvivalDemoPage from './engine/SurvivalDemoPage.tsx'
+import MiniResultDemoPage from './platform/MiniResultDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerPage from './pages/ControllerPage.tsx'
@@ -29,6 +30,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dev/platforms" element={<PlatformDemoPage />} />
         {/* 開発用：ポイント・脱落・勝敗の部品を、横スクロールと組み合わせて確認する */}
         <Route path="/dev/survival" element={<SurvivalDemoPage />} />
+        {/* 開発用：ミニリザルト（ライト）の見た目を確認する */}
+        <Route path="/dev/mini-result" element={<MiniResultDemoPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

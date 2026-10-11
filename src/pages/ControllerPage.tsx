@@ -7,10 +7,13 @@ import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import { EVENTS, type NameMessage, type Phase, type PhaseMessage, type PlayerInfo } from '../shared/messages'
 
+// 細かい言い回しは M9（スマホの表示の対応）で決める
 const PHASE_LABEL: Record<Phase, string> = {
   lobby: 'PCの画面でスタートを待ってね',
   playing: 'ゲーム中！',
+  miniResult: 'ラウンド結果！PCの画面を見てね',
   result: '結果発表！PCの画面を見てね',
+  champion: '優勝者が決まった！PCの画面を見てね',
 }
 
 // スマホ側のコントローラー画面。ラフ画どおり、上に自分の番号（自分の色）、左に ←→、右にジャンプ
@@ -52,7 +55,9 @@ export default function ControllerPage() {
   let message = ''
   if (status === 'connecting') message = '接続中…'
   else if (status === 'retrying') message = '再接続中…（つながらないときは再読み込みしてください）'
-  else if (isFull) message = '満員です。空きが出たら参加できます'
+  // 自分が参加者にいない：ホームなら満員、試合中なら途中参加できない（参加者は試合の始めに固定）
+  else if (isFull && phase === 'lobby') message = '満員です。空きが出たら参加できます'
+  else if (isFull) message = '試合中のため参加できません。次の試合から参加できます'
   else message = PHASE_LABEL[phase]
 
   return (

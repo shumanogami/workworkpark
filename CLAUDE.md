@@ -48,10 +48,18 @@ src/
   theme.ts                 # 見た目の値（色・プレイヤーの色・大きさ・フォント）。ルールの説明は DESIGN.md
   main.tsx                 # ルーティング：/ → PC画面、/controller → スマホ画面
   pages/
-    HostPage.tsx           # PC：ホーム・ゲーム・リザルト
+    HostPage.tsx           # PC：ホーム → ラウンド → ミニリザルト → リザルト → 総合優勝 を、試合の進行（platform/match.ts）で切り替える
     ControllerPage.tsx     # スマホ：コントローラー（?room=ABCD でルーム指定）
-  game/                    # ゲームの中身（芦田担当）。通信には触らない
-    GameScreen.tsx         # 1試合分のゲーム画面（players / getInputs / onFinish を受け取る）
+  platform/                # 試合の流れ（第2期）。流れの図は docs/画面遷移図.html
+    types.ts               # ミニゲームの共通の形（参加者・入力 → 勝った人の一覧、名前・ひと言の指示）
+    registry.ts            # 遊べるミニゲームの一覧。新しいミニゲームはここに1行足す
+    match.ts               # 試合の進行（3勝でミニゲームの勝者、階段2段で総合優勝、次のゲームをランダムに選ぶ）
+    MiniResult.tsx         # ミニリザルト（最大2列、信号のようなライト3つ）
+    MiniResultDemoPage.tsx # 開発用（/dev/mini-result）：ミニリザルトの見た目を確認する
+  game/                    # Jump the highest（ミニゲームの1つ。芦田担当）。通信には触らない
+    miniGame.ts            # Jump the highest をミニゲームとして登録するための情報（id・名前・ひと言の指示）
+    JumpTheHighestRound.tsx # 共通の形にはめ込む（終了した瞬間の高さ → 勝った人の一覧）
+    GameScreen.tsx         # 1ラウンド分のゲーム画面（players / getInputs / onFinish を受け取る）
     step.ts                # 物理：状態を1コマ進める純粋な関数
     physics.ts             # 1人分の物理（入力→速度、重力・地面・壁）
     collisions.ts          # プレイヤー同士の当たり判定（頭に乗る・横の押し合い）

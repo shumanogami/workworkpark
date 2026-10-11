@@ -57,6 +57,8 @@ export const colors = {
     text: famicom.white, // ホーム・リザルトの文字（背景が暗い間の色）
     retry: playerColors[0], // リザルトの「もう一度プレイ」（赤。1P と同じ色）
     home: playerColors[1], // リザルトの「ホームへ戻る」（青。2P と同じ色）
+    // ミニリザルトの信号のようなライト。点いたライトは START! と同じ山吹色、消えているライトは濃紺の暗い色
+    lamp: { on: famicom.gold, off: '#2a2a50', housing: navy, border: famicom.white },
   },
 } as const
 
