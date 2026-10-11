@@ -21,13 +21,15 @@ export const JUMPER: JumperConfig = {
 }
 
 // 縦スクロール（＝マグマが上がる速さ）。最初はゆっくり、だんだん速くなり、最後は登りきれない速さになって勝負がつく
-// 自動操作で試すと、うまく跳び移れても登る速さは 100 px/秒前後。40秒で 150、58秒で 260 になる
+// 20 px/秒から始まり、31秒で 70、58秒で 150、76秒で 240 px/秒（登りきれない速さ）になって必ず勝負がつく
+// 自動操作（ボット）で何百試合も測って決めた。1ラウンドは中央値で約26秒（調整ログ.md）
 export const SCROLL: ScrollConfig = {
   axis: 'vertical',
   direction: 1,
   initialSpeed: 20,
   phases: [
-    { acceleration: 1.6, maxSpeed: 130 },
+    { acceleration: 1.6, maxSpeed: 70 },
+    { acceleration: 3, maxSpeed: 150 },
     { acceleration: 5, maxSpeed: 240 },
   ],
 }
@@ -41,8 +43,8 @@ export const MAGMA_DEPTH_SECONDS = 40 // この秒数で最大まで上がる
 // 足場は「段」ごとに作る。1段に1〜4個。どの段にも、1つ下の段からジャンプで届く足場が必ずある
 
 export const PLATFORM_HEIGHT = 16 // 足場の厚み（見た目だけ。乗る判定は上面）
-// この高さ（スタートから登った距離）で一番難しくなる。マグマの速さから、およそ30〜35秒
-export const HARD_HEIGHT = 3000
+// この高さ（スタートから登った距離）で一番難しくなる。およそ40秒
+export const HARD_HEIGHT = 2500
 // ジャンプで届く範囲。ジャンプの最高到達点は約140px。余裕を持たせて、これより狭い範囲に置く
 export const MAX_RISE = 105 // 段と段の高さの差の上限
 export const MAX_EDGE_GAP = 90 // 足場の端と端の横の隙間の上限

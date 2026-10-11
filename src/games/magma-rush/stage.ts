@@ -72,7 +72,7 @@ function makeRow(gen: StageGen): { gen: StageGen; platforms: Platform[] } {
   const rise = Math.min(between(lerp(60, 85, d), lerp(85, MAX_RISE, d)), MAX_RISE)
   const y = Math.round(gen.nextY - rise)
   // 足場の数：最初は多め、だんだん減って最後は1〜2個
-  const count = easy ? 4 : d < 0.25 ? 3 : d < 0.6 ? 2 : rand() < 0.5 ? 1 : 2
+  const count = easy ? 4 : d < 0.25 ? 3 : d < 0.6 ? 2 : rand() < 0.25 ? 1 : 2
   const width = () => Math.round(Math.max(between(lerp(115, 70, d), lerp(155, 100, d)), 60))
   const id = (i: number) => `r${gen.rows}-${i}`
 

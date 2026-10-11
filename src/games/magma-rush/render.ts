@@ -3,7 +3,7 @@ import { isAlive } from '../../engine/survival'
 import { drawCharacter } from '../../game/sprite'
 import { colors, fonts } from '../../theme'
 import { PLAYER_SIZE, SCROLL, STAGE_HEIGHT, STAGE_WIDTH, WALL_WIDTH } from './constants'
-import { cameraTop, type MagmaState, magmaTop } from './step'
+import { cameraTop, type MagmaState, magmaTop, magmaWave } from './step'
 
 // マグマラッシュの描画。座標はステージ座標（960×540）のまま描く（canvas 側で 2倍に拡大する）
 // 見た目のルールは DESIGN.md：1ドット＝2px、グラデーションなし、背景はキャラより暗く
@@ -60,8 +60,7 @@ function drawMagma(ctx: CanvasRenderingContext2D, state: MagmaState) {
   const t = state.scroll.elapsed
   const col = DOT * 8
   for (let x = 0; x < STAGE_WIDTH; x += col) {
-    const wave = Math.round((Math.sin(t * 4 + x / 40) + 1) * 1.5) * DOT * 2 // 0〜12px
-    const y = top + wave - 6
+    const y = top + magmaWave(t, x) // 当たり判定と同じ波（-6〜+6px）
     ctx.fillStyle = colors.magma.surface
     ctx.fillRect(x, y, col, DOT * 3)
     ctx.fillStyle = colors.magma.main

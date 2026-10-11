@@ -85,6 +85,14 @@ export function magmaTop(state: MagmaState): number {
   return cameraTop(state) + STAGE_HEIGHT - magmaDepth(state.scroll.elapsed)
 }
 
+// マグマの表面の波（上面の y の、平均からのずれ。-6〜+6px）。見た目（render.ts）と当たり判定で同じ値を使う
+// 波は16px幅の柱ごとに高さが違うので、同じ足場に並んでいても、立つ場所によって飲まれる瞬間が少しずれる（引き分けを減らす）
+export const MAGMA_WAVE_COLUMN = 16
+export function magmaWave(elapsed: number, x: number): number {
+  const col = Math.floor(x / MAGMA_WAVE_COLUMN) * MAGMA_WAVE_COLUMN
+  return Math.round((Math.sin(elapsed * 4 + col / 40) + 1) * 1.5) * 4 - 6
+}
+
 export function step(state: MagmaState, inputs: MagmaInputs, dt: number): MagmaState {
   if (state.finished) return state
 
@@ -103,11 +111,16 @@ export function step(state: MagmaState, inputs: MagmaInputs, dt: number): MagmaS
   })
 
   const next: MagmaState = { ...state, scroll, runners, platforms, gen }
-  const magma: Hazard = { id: 'magma', x: 0, y: magmaTop(next), width: STAGE_WIDTH, height: 1e6, cause: 'lava' }
+  const surface = magmaTop(next)
   const alive = runners.filter((r) => isAlive(state.survival, r.playerId))
   let survival = state.survival
-  for (const hit of touchingHazards(alive, [magma])) {
-    survival = eliminate(survival, [hit.playerId], scroll.elapsed, hit.cause)
+  for (const r of alive) {
+    // 体の真ん中の位置の波の高さで判定する（描画と同じ波）
+    const y = surface + magmaWave(scroll.elapsed, r.x + r.width / 2)
+    const magma: Hazard = { id: 'magma', x: 0, y, width: STAGE_WIDTH, height: 1e6, cause: 'lava' }
+    for (const hit of touchingHazards([r], [magma])) {
+      survival = eliminate(survival, [hit.playerId], scroll.elapsed, hit.cause)
+    }
   }
 
   const result = judgeSurvivor(survival)

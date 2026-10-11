@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FIXED_DT, FLOOR_Y, PLAYER_SIZE, STAGE_HEIGHT, STAGE_WIDTH, WALL_WIDTH } from './constants'
-import { cameraTop, createMagmaState, type MagmaInputs, type MagmaState, magmaTop, step } from './step'
+import { cameraTop, createMagmaState, type MagmaInputs, type MagmaState, magmaTop, magmaWave, step } from './step'
 
 const NONE = { left: false, right: false, jump: false }
 
@@ -43,11 +43,25 @@ describe('マグマラッシュの1コマ', () => {
     expect(s.finished).toBe(false)
   })
 
-  it('何もしないと、マグマに飲まれて脱落する。2人同時なら引き分け', () => {
+  it('何もしないと、マグマに飲まれて脱落する。波の高さの差で、ほぼ同時でも先に飲まれた方が負ける', () => {
     const s = run(createMagmaState(['a', 'b'], 1), 5)
     expect(s.finished).toBe(true)
-    expect(s.survival.eliminated.map((e) => e.cause)).toEqual(['lava', 'lava'])
-    expect(s.winners.sort()).toEqual(['a', 'b'])
+    expect(s.survival.eliminated.every((e) => e.cause === 'lava')).toBe(true)
+    expect(s.winners.length).toBe(2 - s.survival.eliminated.length) // 先に飲まれた方がいれば、残った1人の勝ち。同じコマなら引き分け
+  })
+
+  it('マグマの波は-6〜+6pxで、柱（16px幅）の中は同じ高さ。柱が違うと高さが違う時がある', () => {
+    let differs = false
+    for (let t = 0; t < 5; t += 0.1) {
+      for (let x = 0; x < STAGE_WIDTH; x += 8) {
+        const w = magmaWave(t, x)
+        expect(w).toBeGreaterThanOrEqual(-6)
+        expect(w).toBeLessThanOrEqual(6)
+        expect(magmaWave(t, Math.floor(x / 16) * 16 + 15)).toBe(magmaWave(t, Math.floor(x / 16) * 16))
+        if (w !== magmaWave(t, x + 160)) differs = true
+      }
+    }
+    expect(differs).toBe(true)
   })
 
   it('登り続けた人が、最後の1人として勝つ', () => {
