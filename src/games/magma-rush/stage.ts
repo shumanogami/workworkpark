@@ -68,8 +68,8 @@ function makeRow(gen: StageGen): { gen: StageGen; platforms: Platform[] } {
 
   const easy = gen.rows < EASY_ROWS
   const d = difficultyAt(gen.nextY)
-  // 段の高さの差：最初は 60〜85、難しくなると 85〜105
-  const rise = Math.min(between(lerp(60, 85, d), lerp(85, MAX_RISE, d)), MAX_RISE)
+  // 段の高さの差：最初は 50〜80、難しくなると 80〜105（最初を低くして、初めての人が序盤で落ちにくくした）
+  const rise = Math.min(between(lerp(50, 80, d), lerp(80, MAX_RISE, d)), MAX_RISE)
   const y = Math.round(gen.nextY - rise)
   // 足場の数：最初は多め、だんだん減って最後は1〜2個
   const count = easy ? 4 : d < 0.25 ? 3 : d < 0.6 ? 2 : rand() < 0.25 ? 1 : 2
