@@ -4,6 +4,10 @@
 export const STAGE_WIDTH = 960
 export const STAGE_HEIGHT = 540
 
+// 描画の倍率。canvas は 1920×1080 で描き、フルHDの全画面で1ドットずつ一致させる（文字やグラデーションをなめらかにするため）
+// 物理や当たり判定はステージの座標（960×540）のまま。描くときだけ拡大するので、画面とキャラの比率は変わらない
+export const RENDER_SCALE = 2
+
 // 地面の厚み（画面下端からの高さ）。プレイヤーの高さ 0 ＝ 地面の上面
 export const GROUND_HEIGHT = 40
 
