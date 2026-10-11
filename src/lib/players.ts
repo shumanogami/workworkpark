@@ -1,4 +1,5 @@
 // 参加者への番号と色の割り当て。PCだけが行う（PCが審判）。通信・画面には触らない純粋な関数
+import type { PlayerInfo } from '../shared/messages'
 
 export const MAX_PLAYERS = 8
 
@@ -14,11 +15,8 @@ export const PLAYER_COLORS = [
   '#ff77cc', // 8P 桃
 ] as const
 
-export type AssignedPlayer = {
-  playerId: string
-  number: number // 1〜8
-  color: string
-}
+// スマホにもこの形のまま送るため、通信の型（PlayerInfo）と同じにしている
+export type AssignedPlayer = PlayerInfo
 
 // 今つながっている playerId の一覧から、参加者の一覧を作り直す
 // - すでに番号を持っている人は、番号と色を変えない（途中で色が変わると混乱するため）
