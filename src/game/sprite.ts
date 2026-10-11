@@ -1,3 +1,5 @@
+import { colors } from '../theme'
+
 // キャラクター（羽のある子）のドット絵。ラフ画をもとに 20×20 マスで描き、プレイヤーの色で塗り分ける
 // 画像ファイルを使わず文字で持つのは、8色に塗り分けるのが簡単で、読み込み待ちも起きないため
 //
@@ -30,10 +32,10 @@ export const CHARACTER_SPRITE = [
 export const SPRITE_SIZE = 20
 
 const FIXED_COLORS: Record<string, string> = {
-  O: '#1a1a1a',
-  W: '#ffffff',
-  K: '#1a1a1a',
-  M: '#8a2a2a',
+  O: colors.character.outline,
+  W: colors.character.eyeWhite,
+  K: colors.character.eye,
+  M: colors.character.mouth,
 }
 
 // 色を明るく（amount > 0）または暗く（amount < 0）する。amount は -1〜1

@@ -1,19 +1,11 @@
 // 参加者への番号と色の割り当て。PCだけが行う（PCが審判）。通信・画面には触らない純粋な関数
 import type { PlayerInfo } from '../shared/messages'
+import { playerColors } from '../theme'
 
 export const MAX_PLAYERS = 8
 
-// 番号順の色（1P が赤）。最初の4色は /dev/game の開発用の色と同じにしている
-export const PLAYER_COLORS = [
-  '#ff5555', // 1P 赤
-  '#55aaff', // 2P 青
-  '#55dd55', // 3P 緑
-  '#ffcc33', // 4P 黄
-  '#ff9933', // 5P 橙
-  '#bb77ff', // 6P 紫
-  '#33dddd', // 7P 水色
-  '#ff77cc', // 8P 桃
-] as const
+// 番号順の色（1P が赤）。値と選んだ理由は src/theme.ts にある
+export const PLAYER_COLORS = playerColors
 
 // スマホにもこの形のまま送るため、通信の型（PlayerInfo）と同じにしている
 export type AssignedPlayer = PlayerInfo
