@@ -71,7 +71,7 @@ describe('下の人が動くと、上の人も一緒に運ばれる', () => {
   it('下の人が右へ歩くと、上の人も同じだけ右へ動く', () => {
     const before = setup({ A: { x: 300, y: PLAYER_SIZE }, B: { x: 300, y: 0 } })
     const s = run(before, press('B', { right: true }), 0.5)
-    expect(get(s, 'B').x).toBeGreaterThan(400)
+    expect(get(s, 'B').x).toBeGreaterThan(380) // 0.5秒で80px以上動いている
     expect(get(s, 'A').x).toBeCloseTo(get(s, 'B').x)
     expect(get(s, 'A').standingOn).toBe('B')
   })
@@ -79,7 +79,7 @@ describe('下の人が動くと、上の人も一緒に運ばれる', () => {
   it('3段重ねで一番下が動くと、一番上まで運ばれる', () => {
     const before = setup({ A: { x: 300, y: 0 }, B: { x: 300, y: PLAYER_SIZE }, C: { x: 300, y: PLAYER_SIZE * 2 } })
     const s = run(before, press('A', { left: true }), 0.5)
-    expect(get(s, 'A').x).toBeLessThan(200)
+    expect(get(s, 'A').x).toBeLessThan(220) // 0.5秒で80px以上動いている
     expect(get(s, 'C').x).toBeCloseTo(get(s, 'A').x)
   })
 

@@ -27,8 +27,8 @@ export const GRAVITY = 2000
 // ジャンプの初速（ピクセル/秒）。最高到達点は JUMP_SPEED² / (2 × GRAVITY) ≒ 140px（キャラ約3.5個分）
 export const JUMP_SPEED = 750
 
-// 横移動の最高速度（ピクセル/秒）
-export const MOVE_SPEED = 260
+// 横移動の最高速度（ピクセル/秒）。遊んでみて速すぎたため 260 から 0.8 倍に下げた（2026-10-11）
+export const MOVE_SPEED = 208
 
 // 横方向の加速度（ピクセル/秒²）。空中は地上より操作が効きにくくする
 export const GROUND_ACCEL = 3000
@@ -38,11 +38,13 @@ export const AIR_ACCEL = 1500
 export const JUMP_BUFFER_TIME = 0.1
 
 // 横からぶつかったときに弾かれる速さ（ピクセル/秒）。横と上の組み合わせで「斜め上」に飛ぶ
-export const BOUNCE_VX = 450
+// 横は飛びすぎたため 450 から下げた（横に飛ぶ距離 約210px → 約130px。2026-10-11）
+export const BOUNCE_VX = 350
 export const BOUNCE_VY = 450
 
 // 弾かれた後、操作が効かない時間（秒）。すぐに踏みとどまれると弾かれた感じが出ないため
-export const KNOCKBACK_TIME = 0.35
+// 長すぎたため 0.35 から短くした（2026-10-11）
+export const KNOCKBACK_TIME = 0.25
 
 // 「動いている」とみなす横方向の速さ（ピクセル/秒）。これ以下同士で重なったときは弾かずに押し離すだけ
 export const MOVING_THRESHOLD = 20
