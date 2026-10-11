@@ -3,7 +3,7 @@ import { drawCharacter, SPRITE_SIZE } from './sprite'
 
 type Props = {
   color: string
-  size: number // 表示する大きさ（px）
+  size: number | string // 表示する大きさ（数値なら px。'100%' のように書けば親の大きさに合わせる）
 }
 
 // ゲーム外（リザルト画面など）でキャラクターを1体表示する。ゲーム画面と同じドット絵を使う
