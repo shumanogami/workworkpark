@@ -55,7 +55,9 @@ export default function ControllerPage() {
   let message = ''
   if (status === 'connecting') message = '接続中…'
   else if (status === 'retrying') message = '再接続中…（つながらないときは再読み込みしてください）'
-  else if (isFull) message = '満員です。空きが出たら参加できます'
+  // 自分が参加者にいない：ホームなら満員、試合中なら途中参加できない（参加者は試合の始めに固定）
+  else if (isFull && phase === 'lobby') message = '満員です。空きが出たら参加できます'
+  else if (isFull) message = '試合中のため参加できません。次の試合から参加できます'
   else message = PHASE_LABEL[phase]
 
   return (

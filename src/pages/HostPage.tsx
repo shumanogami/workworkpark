@@ -73,11 +73,12 @@ export default function HostPage() {
     if (!channel) return
     const payload: PhaseMessage = {
       phase,
-      players,
+      // ホームでは接続中の人、試合中は試合の参加者を送る（試合の途中で来た人に番号を割り当てないため）
+      players: phase === 'lobby' ? players : matchPlayers,
       ...(phase === 'result' ? { winnerIds: winnerKey ? winnerKey.split(',') : [] } : {}),
     }
     void channel.send({ type: 'broadcast', event: EVENTS.phase, payload })
-  }, [channel, phase, players, winnerKey])
+  }, [channel, phase, players, matchPlayers, winnerKey])
 
   const canStart = players.length >= MIN_PLAYERS
 
@@ -182,6 +183,7 @@ export default function HostPage() {
         ))}
       </ul>
       {waiting > 0 && <p className="text-neutral-400">満員のため {waiting} 人が待っています</p>}
+      <p className="text-neutral-400">スタートを押した時点の参加者で試合をします（試合の途中からは参加できません）</p>
       <button
         className="border-4 border-white px-6 py-2 text-2xl disabled:opacity-30"
         disabled={!canStart}
