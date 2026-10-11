@@ -8,22 +8,27 @@ const famicom = {
   skyBlue: '#5c94fc', // マリオの空の色
   white: '#fcfcfc',
   paleBlue: '#a4e4fc',
-  lightBlue: '#3cbcfc',
   cream: '#fce0a8',
   gold: '#f8b800', // 山吹色
   vermilion: '#f83800', // 朱色
   green: '#00a800',
   brown: '#881400',
   indigo: '#3c3c78',
-  crimson: '#e40058',
-  blue: '#0058f8',
-  lime: '#b8f818',
-  pink: '#f878f8',
-  salmon: '#f87858',
-  violet: '#9878f8',
-  cyan: '#00e8d8',
-  ochre: '#ac7c00',
 } as const
+
+// プレイヤーの色（1P から順に）。2026-10-11 のパレット決定で「キャラの8色は変えない」としたため、ファミコンの色ではない
+// 背景はこの8色より落ち着かせて、キャラを目立たせている
+// 4P の黄と太陽の光、3P の緑と草、2P の青と空は色が近い。どうするかは DESIGN.md の「未決定」
+export const playerColors = [
+  '#ff5555', // 1P 赤
+  '#55aaff', // 2P 青
+  '#55dd55', // 3P 緑
+  '#ffcc33', // 4P 黄
+  '#ff9933', // 5P 橙
+  '#bb77ff', // 6P 紫
+  '#33dddd', // 7P 水色
+  '#ff77cc', // 8P 桃
+] as const
 
 // 輪郭・文字の「黒」。真っ黒だと青い空から浮くため、空に合わせて青寄りの濃紺にした（ファミコンの色ではない）
 const navy = '#1a1a40'
@@ -32,7 +37,6 @@ export const colors = {
   // 空。なめらかなグラデーションはドット絵と合わないため単色
   sky: { main: famicom.skyBlue },
   cloud: { main: famicom.white, shadow: famicom.paleBlue },
-  // 太陽は光の色（山吹色）がプレイヤーの色とかぶらないよう、プレイヤーには黄色を使わない
   sun: { main: famicom.cream, ray: famicom.gold },
   grass: { main: famicom.green },
   // 地面の土。マリオの地面色（#c84c0c）は目立ちすぎるため暗めにした
@@ -51,23 +55,10 @@ export const colors = {
     heightBar: famicom.gold, // FINISH のあと上がっていく高さのバー
     heightFill: 'rgba(252, 252, 252, 0.25)', // バーの下の塗り（黄色だと青い空と混ざって濁るため白の半透明）
     text: famicom.white, // ホーム・リザルトの文字（背景が暗い間の色）
-    retry: famicom.crimson, // リザルトの「もう一度プレイ」（赤）
-    home: famicom.lightBlue, // リザルトの「ホームへ戻る」（青）。2P の青は暗い背景で読みにくいため明るい青にした
+    retry: playerColors[0], // リザルトの「もう一度プレイ」（赤。1P と同じ色）
+    home: playerColors[1], // リザルトの「ホームへ戻る」（青。2P と同じ色）
   },
 } as const
-
-// プレイヤーの色（1P から順に）。どの色も空・雲・太陽・草・地面・壁・FINISH の文字と見分けられるものを選んだ
-// 背景の色との差（色差 ΔE）が 28 以上、プレイヤー同士も 28 以上離れている（前の8色は 4P 黄と太陽の光が 10 しかなかった）
-export const playerColors = [
-  famicom.crimson, // 1P 赤
-  famicom.blue, // 2P 青（空より濃い青）
-  famicom.lime, // 3P 黄緑（草の緑より明るく黄色寄り）
-  famicom.pink, // 4P 桃（黄色は太陽とかぶるため使わない）
-  famicom.salmon, // 5P 橙
-  famicom.violet, // 6P 紫
-  famicom.cyan, // 7P 水色
-  famicom.ochre, // 8P 黄土
-] as const
 
 // 大きさの基準。デザインは 480×270 のドットの升目で考え、1ドット＝論理 1px とする
 // 物理の座標（src/game/constants.ts の 960×540）と描画の canvas は、その整数倍で拡大する
