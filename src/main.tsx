@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { installAudioUnlock } from './audio/audio'
 import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
+import SurvivalDemoPage from './engine/SurvivalDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerPage from './pages/ControllerPage.tsx'
@@ -23,6 +24,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dev/game" element={<DevGamePage />} />
         {/* 開発用：横・縦スクロールの動きを確認する（今後のゲームで使う部品） */}
         <Route path="/dev/scroll" element={<ScrollDemoPage />} />
+        {/* 開発用：ポイント・脱落・勝敗の部品を、横スクロールと組み合わせて確認する */}
+        <Route path="/dev/survival" element={<SurvivalDemoPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
