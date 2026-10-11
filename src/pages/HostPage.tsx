@@ -1,3 +1,4 @@
+import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
 import GameScreen from '../game/GameScreen'
 import type { Heights } from '../game/types'
@@ -67,6 +68,7 @@ export default function HostPage() {
 
   const controllerUrl = `${location.origin}/controller?room=${roomCode}`
   const waiting = presentIds.length - players.length
+  const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
@@ -81,10 +83,23 @@ export default function HostPage() {
           ))}
         </ul>
       )}
-      <p className="text-2xl">
-        ルーム：<span className="tracking-widest">{roomCode}</span>
-      </p>
-      <p className="break-all text-neutral-400">{controllerUrl}</p>
+      <div className="flex flex-wrap items-center justify-center gap-6">
+        {/* 白い余白（marginSize）がないと読み取れないスマホがあるため、背景を白にして余白を付ける */}
+        <QRCodeSVG value={controllerUrl} size={200} marginSize={2} className="block" />
+        <div className="flex flex-col gap-2">
+          <p className="text-xl">スマホで読み取って参加！</p>
+          <p className="text-2xl">
+            ルーム：<span className="tracking-widest">{roomCode}</span>
+          </p>
+          <p className="max-w-80 break-all text-sm text-neutral-400">{controllerUrl}</p>
+          {isLocalhost && (
+            // localhost はスマホから見ると「スマホ自身」を指すため、QRを読んでもつながらない
+            <p className="max-w-80 text-sm text-yellow-300">
+              このURLはスマホから開けません。PCのIPアドレス（例：http://192.168.○.○:5173）か公開URLでこの画面を開いてください
+            </p>
+          )}
+        </div>
+      </div>
       <p className="text-neutral-400">
         {status === 'connecting' && 'サーバーに接続中…'}
         {status === 'retrying' && '再接続中…（つながらないときは再読み込みしてください）'}
