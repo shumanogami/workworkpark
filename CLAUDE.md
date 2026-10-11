@@ -39,11 +39,22 @@ docs/
   初期構想.md              # 仕様の正
   タスク.md                # タスク一覧と担当
   環境確認.md              # メンバーごとの開発環境の確認結果
+  未決定仕様（芦田）.md      # 芦田担当の開発中に出た未決定の仕様と仮の対応
 src/
   main.tsx                 # ルーティング：/ → PC画面、/controller → スマホ画面
   pages/
     HostPage.tsx           # PC：ホーム・ゲーム・リザルト
     ControllerPage.tsx     # スマホ：コントローラー（?room=ABCD でルーム指定）
+  game/                    # ゲームの中身（芦田担当）。通信には触らない
+    GameScreen.tsx         # 1試合分のゲーム画面（players / getInputs / onFinish を受け取る）
+    step.ts                # 物理：状態を1コマ進める純粋な関数
+    physics.ts             # 1人分の物理（入力→速度、重力・地面・壁）
+    collisions.ts          # プレイヤー同士の当たり判定（頭に乗る・横の押し合い）
+    keyboard.ts            # 開発用のキーボード操作（スマホの代わり）
+    state.ts               # 初期状態の生成、終了時の高さの取り出し
+    render.ts              # Canvas への描画
+    constants.ts           # ステージの大きさ、制限時間など
+    DevGamePage.tsx        # 開発用（/dev/game）：通信なしでゲーム画面だけを確認する
   lib/
     supabase.ts            # Supabase クライアント（環境変数が未設定なら起動時にエラー）
   shared/
