@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>画面遷移図</title>
+<style>
+:root {
+  --bg: #fafaf7; --fg: #1d1d1f; --muted: #6b6b70; --card: #ffffff; --line: #d9d9d3;
+  --accent: #2f6fdf; --fact: #1e8e3e; --decided: #2f6fdf; --idea: #b26a00;
+  --node: #ffffff; --node-line: #3a3a40; --decision: #fff4dc; --round: #eaf2ff; --done: #e6f6ea;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18181b; --fg: #ececf1; --muted: #a0a0aa; --card: #222227; --line: #3a3a42;
+    --accent: #7aa7ff; --fact: #5cd27e; --decided: #7aa7ff; --idea: #f0b34a;
+    --node: #26262c; --node-line: #c8c8d0; --decision: #3a3222; --round: #1f2a3d; --done: #1f3326;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18181b; --fg: #ececf1; --muted: #a0a0aa; --card: #222227; --line: #3a3a42;
+  --accent: #7aa7ff; --fact: #5cd27e; --decided: #7aa7ff; --idea: #f0b34a;
+  --node: #26262c; --node-line: #c8c8d0; --decision: #3a3222; --round: #1f2a3d; --done: #1f3326;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.75 system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+main { max-width: 920px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+h2 { font-size: 20px; margin: 44px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+.sub { color: var(--muted); margin: 0 0 24px; }
+.box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 12px 0; }
+.lead { border-left: 4px solid var(--accent); }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.scroll { overflow-x: auto; }
+code { background: var(--line); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+.fact { color: var(--fact); } .decided { color: var(--decided); } .idea { color: var(--idea); }
+nav ol { margin: 0; padding-left: 20px; }
+a { color: var(--accent); }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--fg); font-family: system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+svg .node { fill: var(--node); stroke: var(--node-line); stroke-width: 1.5; }
+svg .round { fill: var(--round); }
+svg .decision { fill: var(--decision); stroke: var(--node-line); stroke-width: 1.5; }
+svg .done { fill: var(--done); }
+svg .edge { stroke: var(--node-line); stroke-width: 1.6; fill: none; }
+svg .small { font-size: 12px; fill: var(--muted); }
+svg .yes { font-size: 13px; fill: var(--fact); font-weight: 700; }
+svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
+.legend span { margin-right: 14px; }
+</style>
+</head>
+<body>
+<main>
+<h1>画面遷移図</h1>
+<p class="sub">第2期（マルチゲーム化）／タスク M1／作成 2026-10-11、芦田の決定（F1〜F3・総合優勝の表示）を反映 2026-10-11（Claude Code・芦田担当）</p>
+
+<div class="box lead">
+<strong>目的</strong><br>
+試合の始まりから総合優勝までに、<strong>PC とスマホがどの画面をどの順に表示するか</strong>を1枚にまとめる。2人の AI（芦田担当・野上担当）が、画面の流れ（M6）、ミニリザルト（M7）、リザルト（M8）、スマホの表示（M9）、通信の状態（M4）を、同じ前提で作れるようにするため。<br>
+仕様の正は <a href="方針.md">docs/方針.md</a>。この図は方針.md を図にしたもので、食い違ったら方針.md を優先する。
+</div>
+
+<div class="box">
+<strong>目次</strong>
+<nav><ol>
+<li><a href="#legend">この図の読み方（事実・決定・案）</a></li>
+<li><a href="#flow">試合全体の流れ</a></li>
+<li><a href="#screens">画面ごとの表示（PC・スマホ）</a></li>
+<li><a href="#phase">画面の状態（Phase）と通信</a></li>
+<li><a href="#rules">流れの分かれ目のルール</a></li>
+<li><a href="#reconnect">切断・再接続のときの表示</a></li>
+<li><a href="#now">今の実装との差</a></li>
+<li><a href="#open">決まったこと・まだ決まっていないこと</a></li>
+</ol></nav>
+</div>
+
+<h2 id="legend">1. この図の読み方</h2>
+<div class="scroll"><table>
+<tr><th>印</th><th>意味</th><th>根拠</th></tr>
+<tr><td><span class="tag fact">事実</span></td><td>今のコードがそうなっている</td><td>main のコード（<code>src/pages/HostPage.tsx</code>・<code>src/shared/messages.ts</code> など）</td></tr>
+<tr><td><span class="tag decided">決定</span></td><td>芦田が決めた仕様（まだ実装していないものを含む）</td><td><a href="方針.md">docs/方針.md</a>、この図の8章（2026-10-11）</td></tr>
+<tr><td><span class="tag idea">案</span></td><td>図を作るために置いた仮の案。決まったら方針.md とこの図を直す</td><td>この図で提案（<a href="#open">8章</a>）</td></tr>
+</table></div>
+
+<h2 id="flow">2. 試合全体の流れ <span class="tag decided">決定</span></h2>
+<p class="legend"><span>□ 画面</span><span>◇ 分かれ目</span></p>
+<svg viewBox="0 0 760 890" role="img" aria-label="試合全体の画面遷移図">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--node-line)"/>
+    </marker>
+  </defs>
+
+  <!-- ホーム -->
+  <rect class="node" x="230" y="20" width="300" height="64" rx="10"/>
+  <text x="380" y="47" text-anchor="middle" font-size="16" font-weight="700">ホーム</text>
+  <text x="380" y="70" text-anchor="middle" class="small">QRで参加 → 参加者を決めて「スタート」</text>
+
+  <!-- ミニゲームを選ぶ -->
+  <rect class="node" x="230" y="124" width="300" height="56" rx="10"/>
+  <text x="380" y="149" text-anchor="middle" font-size="15" font-weight="700">ミニゲームを選ぶ（画面なし）</text>
+  <text x="380" y="170" text-anchor="middle" class="small">ランダム・演出なし・全部遊ぶまで重複なし</text>
+
+  <!-- ラウンド -->
+  <rect class="node round" x="170" y="220" width="420" height="92" rx="10"/>
+  <text x="380" y="246" text-anchor="middle" font-size="16" font-weight="700">ラウンド</text>
+  <text x="380" y="268" text-anchor="middle" font-size="13">ひと言の指示（例：避けろ！）とカウントダウン（3・2・1・START!）</text>
+  <text x="380" y="287" text-anchor="middle" font-size="13">→ プレイ → FINISH</text>
+  <text x="380" y="304" text-anchor="middle" class="small">ミニゲームが「勝った人の一覧」を返す</text>
+
+  <!-- ミニリザルト -->
+  <rect class="node" x="230" y="352" width="300" height="56" rx="10"/>
+  <text x="380" y="377" text-anchor="middle" font-size="15" font-weight="700">ミニリザルト（3秒で自動で次へ）</text>
+  <text x="380" y="398" text-anchor="middle" class="small">勝った人のライトが1つ点く（最大2列）</text>
+
+  <!-- 3勝? -->
+  <polygon class="decision" points="380,448 500,498 380,548 260,498"/>
+  <text x="380" y="494" text-anchor="middle" font-size="14" font-weight="700">だれかが</text>
+  <text x="380" y="513" text-anchor="middle" font-size="14" font-weight="700">3勝した？</text>
+
+  <!-- リザルト（階段） -->
+  <rect class="node" x="230" y="588" width="300" height="56" rx="10"/>
+  <text x="380" y="613" text-anchor="middle" font-size="15" font-weight="700">リザルト（階段・4秒で自動で次へ）</text>
+  <text x="380" y="634" text-anchor="middle" class="small">そのミニゲームの勝者が1段上がる</text>
+
+  <!-- 2段? -->
+  <polygon class="decision" points="380,684 500,734 380,784 260,734"/>
+  <text x="380" y="730" text-anchor="middle" font-size="14" font-weight="700">一番上（2段）</text>
+  <text x="380" y="749" text-anchor="middle" font-size="14" font-weight="700">に着いた？</text>
+
+  <!-- 総合優勝 -->
+  <rect class="node done" x="230" y="824" width="300" height="56" rx="10"/>
+  <text x="380" y="849" text-anchor="middle" font-size="15" font-weight="700">総合優勝「勝者 ○○」</text>
+  <text x="380" y="870" text-anchor="middle" class="small">PCの「ホームへ戻る」でホームへ</text>
+
+  <!-- 縦の矢印 -->
+  <line class="edge" x1="380" y1="84" x2="380" y2="122" marker-end="url(#arrow)"/>
+  <line class="edge" x1="380" y1="180" x2="380" y2="218" marker-end="url(#arrow)"/>
+  <line class="edge" x1="380" y1="312" x2="380" y2="350" marker-end="url(#arrow)"/>
+  <line class="edge" x1="380" y1="408" x2="380" y2="446" marker-end="url(#arrow)"/>
+  <line class="edge" x1="380" y1="548" x2="380" y2="586" marker-end="url(#arrow)"/>
+  <text x="392" y="572" class="yes">はい</text>
+  <line class="edge" x1="380" y1="644" x2="380" y2="682" marker-end="url(#arrow)"/>
+  <line class="edge" x1="380" y1="784" x2="380" y2="822" marker-end="url(#arrow)"/>
+  <text x="392" y="808" class="yes">はい</text>
+
+  <!-- 3勝していない → 次のラウンド（右側） -->
+  <path class="edge" d="M500,498 H650 V266 H592" marker-end="url(#arrow)"/>
+  <text x="512" y="488" class="no">いいえ</text>
+  <text x="660" y="380" class="small">同じミニゲームの</text>
+  <text x="660" y="398" class="small">次のラウンド</text>
+
+  <!-- 一番上に着いていない → 次のミニゲーム（左側） -->
+  <path class="edge" d="M260,734 H110 V152 H228" marker-end="url(#arrow)"/>
+  <text x="196" y="724" class="no">いいえ</text>
+  <text x="118" y="420" class="small">次のミニゲーム</text>
+  <text x="118" y="438" class="small">（ランダム）</text>
+
+  <!-- 総合優勝 → ホーム（左端） -->
+  <path class="edge" d="M230,852 H40 V52 H228" marker-end="url(#arrow)"/>
+  <text x="48" y="840" class="small">ホームへ</text>
+</svg>
+
+<h2 id="screens">3. 画面ごとの表示（PC・スマホ）</h2>
+<div class="scroll"><table>
+<tr><th>画面</th><th>PC</th><th>スマホ</th><th>次へ進むきっかけ</th><th>担当タスク</th></tr>
+<tr><td>ホーム</td>
+<td>タイトル、QRコード・ルームコード、参加者（キャラ・名前）、スタートボタン（2人以上で押せる）<span class="tag fact">事実</span>。<strong>スタートを押した時点の参加者で試合を固定</strong><span class="tag decided">決定</span></td>
+<td>自分の名前（タップで変更）と色<span class="tag fact">事実</span>、「スタートを待ってね」</td>
+<td>PCの「スタート」</td><td>M5</td></tr>
+<tr><td>ラウンド</td>
+<td><strong>ひと言の指示</strong>（「避けろ！」「高く跳べ！」「生き残れ！」など）<span class="tag decided">決定</span>をカウントダウン（3・2・1・START!）と一緒に大きく表示<span class="tag idea">案</span> → プレイ → FINISH の演出<span class="tag fact">事実（Jump the highest）</span>。プレイの中身はミニゲームごと</td>
+<td>コントローラー（左・右・ジャンプ）<span class="tag fact">事実</span>。上に同じひと言の指示<span class="tag idea">案</span></td>
+<td>ミニゲームが「勝った人の一覧」を返す</td><td>M2・各ミニゲーム</td></tr>
+<tr><td>ミニリザルト</td>
+<td>キャラを<strong>最大2列</strong>に並べ、1人に<strong>信号のようなライトが3つ</strong>。今回勝った人のライトが1つ点く演出<span class="tag decided">決定</span></td>
+<td>「勝った！」／「次のラウンド」と、自分のライトの数<span class="tag idea">案</span></td>
+<td><strong>自動で3秒</strong><span class="tag decided">決定</span></td><td>M7・M9</td></tr>
+<tr><td>リザルト（階段）</td>
+<td><strong>2段の階段</strong>にキャラを並べ、そのミニゲームの勝者が1段上がる演出<span class="tag decided">決定</span></td>
+<td>「1段上がった！」／自分の段<span class="tag idea">案</span></td>
+<td><strong>自動で4秒</strong><span class="tag decided">決定</span></td><td>M8・M9</td></tr>
+<tr><td>総合優勝</td>
+<td><strong>「勝者 ○○」</strong>と簡単に表示（同時なら全員の名前）<span class="tag decided">決定</span>。「ホームへ戻る」。細かい見せ方は後で決める</td>
+<td>「優勝！」／「結果はPCを見てね」<span class="tag idea">案</span></td>
+<td><strong>PCの「ホームへ戻る」</strong><span class="tag decided">決定</span></td><td>M8・M9</td></tr>
+</table></div>
+<p>ミニゲームの最初に「ゲーム紹介」の画面は<strong>入れない</strong><span class="tag decided">決定</span>。遊び方は、ラウンドの始めのひと言の指示で伝える。</p>
+
+<h2 id="phase">4. 画面の状態（Phase）と通信</h2>
+<p>PC は今の画面の状態を、Broadcast の <code>phase</code> イベント（<code>PhaseMessage</code>）でスマホに送る<span class="tag fact">事実</span>。スマホはそれを見て表示を切り替える。M4 で状態を増やす（2人で合意済み）。状態の名前は下の表で<strong>決定</strong><span class="tag decided">決定</span>。</p>
+<div class="scroll"><table>
+<tr><th>状態</th><th>今（<code>messages.ts</code>）</th><th>第2期の名前</th><th>一緒に送る情報（案）</th></tr>
+<tr><td>ホーム</td><td><code>lobby</code><span class="tag fact">事実</span></td><td><code>lobby</code></td><td>参加者の一覧（番号・色）<span class="tag fact">事実</span></td></tr>
+<tr><td>ラウンド</td><td><code>playing</code><span class="tag fact">事実</span></td><td><code>playing</code></td><td>ミニゲームの id、ひと言の指示</td></tr>
+<tr><td>ミニリザルト</td><td>なし</td><td><code>miniResult</code></td><td>各人の勝ち数、今回勝った人</td></tr>
+<tr><td>リザルト（階段）</td><td>なし（今の <code>result</code> は Jump the highest の勝敗画面）</td><td><code>result</code></td><td>各人の段、今回上がった人</td></tr>
+<tr><td>総合優勝</td><td>なし</td><td><code>champion</code></td><td>優勝者</td></tr>
+</table></div>
+<p>試合の進行（何勝したか・何段目か・次のミニゲーム）は PC だけが持つ<span class="tag decided">決定</span>（PC が審判）。スマホは表示に必要な分を受け取るだけ。仮の案で挙げていた <code>intro</code>（ゲーム紹介）は、ゲーム紹介を入れないので使わない。</p>
+
+<h2 id="rules">5. 流れの分かれ目のルール <span class="tag decided">決定</span></h2>
+<div class="scroll"><table>
+<tr><th>場面</th><th>どうなるか</th></tr>
+<tr><td>ラウンドで複数人が勝った（引き分け）</td><td>勝った全員にライトが点く。全員が引き分けなら全員に点く</td></tr>
+<tr><td>2人以上が同時に3勝した</td><td>全員がそのミニゲームの勝者で、全員1段上がる</td></tr>
+<tr><td>2人以上が同時に一番上に着いた</td><td>全員が総合優勝（引き分け）</td></tr>
+<tr><td>全部のミニゲームを遊び終えても総合優勝が決まらない</td><td>もう一度全部の中からランダムに選び直す</td></tr>
+<tr><td>試合の途中の参加</td><td>できない（参加者はスタートの時点で固定）</td></tr>
+</table></div>
+
+<h2 id="reconnect">6. 切断・再接続のときの表示 <span class="tag decided">決定</span></h2>
+<div class="scroll"><table>
+<tr><th>場面</th><th>PC</th><th>スマホ</th></tr>
+<tr><td>試合中にスマホの接続が切れた</td><td>その人の枠・番号・色は残し「切断中」と表示。キャラはその場に残り、操作は「何も押していない」扱い。待たずに進める</td><td>（表示できない）</td></tr>
+<tr><td>同じスマホで QR を読み直した・再読み込みした</td><td>「切断中」が消え、同じ番号・色・名前で続きから</td><td>今の画面の状態を受け取り、同じ表示に戻る（名前も戻る）</td></tr>
+<tr><td>そのスマホが使えなくなった</td><td>その試合には戻れない（キャラは残る）</td><td>―</td></tr>
+<tr><td>試合中に別のスマホが QR を読んだ</td><td>参加者は増えない</td><td>「試合中のため参加できません」<span class="tag idea">案</span></td></tr>
+</table></div>
+<p>今は playerId を <code>sessionStorage</code> に保存していて、タブを閉じると別人扱いになる。また PC の割り当ては「今つながっている人」から作り直していて、一瞬切れると番号と色が外れる<span class="tag fact">事実</span>。直すのはタスク M12。</p>
+
+<h2 id="now">7. 今の実装との差 <span class="tag fact">事実</span></h2>
+<div class="scroll"><table>
+<tr><th>今（Jump the highest だけ）</th><th>第2期</th></tr>
+<tr><td>ホーム → ラウンド（1回）→ リザルト（「〇P WIN!!」）→「もう一度プレイ」か「ホームへ戻る」</td><td>ホーム → ミニゲームを選ぶ → ラウンドとミニリザルトのくり返し → リザルト（階段）→ … → 総合優勝</td></tr>
+<tr><td>状態は <code>lobby</code>・<code>playing</code>・<code>result</code> の3つ</td><td>4章の5つ（M4）</td></tr>
+<tr><td>ゲーム画面は「終了した瞬間の高さ」を返す</td><td>どのミニゲームも「勝った人の一覧」を返す（M2）</td></tr>
+<tr><td>ミニゲームの指示の表示はない</td><td>ラウンドの始めにひと言の指示（ミニゲームごとに決める）</td></tr>
+<tr><td>次へ進むのは PC のボタン</td><td>ラウンドの合間は自動で進む。総合優勝だけ PC のボタン</td></tr>
+</table></div>
+
+<h2 id="open">8. 決まったこと・まだ決まっていないこと</h2>
+<h3 style="font-size:16px;margin:16px 0 8px">決まったこと（2026-10-11 芦田）</h3>
+<div class="scroll"><table>
+<tr><th>#</th><th>項目</th><th>決定</th></tr>
+<tr><td>F1</td><td>ラウンドの合間を次へ進める方法</td><td>自動。ミニリザルト3秒・リザルト4秒。総合優勝だけ PC の「ホームへ戻る」</td></tr>
+<tr><td>F2</td><td>ミニゲームの最初の「ゲーム紹介」</td><td><strong>入れない</strong>。代わりに「避けろ！」「高く跳べ！」「生き残れ！」などの<strong>ひと言の指示</strong>だけを出す（ミニゲームごとに決める）</td></tr>
+<tr><td>F3</td><td>状態（Phase）の名前</td><td><code>lobby</code>・<code>playing</code>・<code>miniResult</code>・<code>result</code>・<code>champion</code></td></tr>
+<tr><td>F5</td><td>総合優勝の表示</td><td>「勝者 ○○」と簡単に表示する</td></tr>
+</table></div>
+<h3 style="font-size:16px;margin:16px 0 8px">まだ決まっていないこと</h3>
+<div class="scroll"><table>
+<tr><th>#</th><th>決まっていないこと</th><th>仮の案</th></tr>
+<tr><td>F4</td><td>スマホに出す一言（「勝った！」など）</td><td>3章の表のとおり。M9 で決める</td></tr>
+<tr><td>F6</td><td>ひと言の指示を出すタイミングと場所</td><td>各ラウンドのカウントダウン（3・2・1）と一緒に PC に大きく出し、スマホの上にも出す</td></tr>
+<tr><td>F7</td><td>総合優勝の細かい見せ方（演出・キャラの見せ方・その後の流れ）</td><td>芦田が後で細かく要件を決める。それまでは「勝者 ○○」と「ホームへ戻る」だけ</td></tr>
+</table></div>
+
+</main>
+</body>
+</html>
