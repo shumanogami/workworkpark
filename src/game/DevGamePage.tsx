@@ -1,4 +1,13 @@
 import { useState } from 'react'
+import SoundToggle from '../audio/SoundToggle'
+import {
+  playBounce,
+  playCountdownGo,
+  playCountdownTick,
+  playDecide,
+  playFinish,
+  playJump,
+} from '../audio/sfx'
 import GameScreen from './GameScreen'
 import { DEV_KEY_BINDINGS, useKeyboardInputs } from './keyboard'
 import type { GamePlayer, Heights } from './types'
@@ -16,6 +25,15 @@ const KEY_HELP = [
   { color: '#55aaff', keys: '← / → / ↑' },
   { color: '#55dd55', keys: 'J / L / I' },
   { color: '#ffcc33', keys: 'F / H / T' },
+]
+
+const SOUND_SAMPLES = [
+  { label: 'ジャンプ', play: playJump },
+  { label: '弾かれた', play: playBounce },
+  { label: '決定', play: playDecide },
+  { label: 'カウント', play: playCountdownTick },
+  { label: 'スタート', play: playCountdownGo },
+  { label: '終了', play: playFinish },
 ]
 
 export default function DevGamePage() {
@@ -41,6 +59,23 @@ export default function DevGamePage() {
           <span key={k.color} style={{ color: k.color }}>
             ■ {k.keys}
           </span>
+        ))}
+        <SoundToggle />
+      </div>
+      {/* 開発用：効果音を1つずつ聞いて確かめる（カウントダウン・決定音は T17・T15 で使う予定） */}
+      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+        <span className="text-neutral-400">効果音を試す：</span>
+        {SOUND_SAMPLES.map((s) => (
+          <button
+            key={s.label}
+            className="border border-neutral-500 px-2"
+            onClick={(e) => {
+              e.currentTarget.blur()
+              s.play()
+            }}
+          >
+            {s.label}
+          </button>
         ))}
       </div>
       <p className="text-neutral-400">

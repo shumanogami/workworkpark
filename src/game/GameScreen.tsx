@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { startBgm, stopBgm } from '../audio/bgm'
+import { playBounce, playFinish, playJump } from '../audio/sfx'
 import { FIXED_DT, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
 import { render } from './render'
+import { detectEvents } from './events'
 import { createInitialState, getHeights } from './state'
 import { step } from './step'
 import type { GamePlayer, Heights, Inputs } from './types'
@@ -35,6 +38,7 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     let lastTime: number | null = null
     let accumulator = 0
     let rafId = 0
+    startBgm()
 
     const frame = (time: number) => {
       // 前のコマからの経過時間。タブが裏に回って長く止まった後に一気に進まないよう上限を設ける
@@ -43,14 +47,25 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
       accumulator += delta
 
       // 物理は1/60秒刻みで進める（画面が120Hzでも60Hzでも同じ結果になるように）
+      // 同じコマの中で同じ音が重なって大きくならないよう、1回の描画につき1回だけ鳴らす
+      let jumped = false
+      let bounced = false
       while (accumulator >= FIXED_DT && !state.finished) {
-        state = step(state, getInputsRef.current(), FIXED_DT)
+        const next = step(state, getInputsRef.current(), FIXED_DT)
+        const events = detectEvents(state, next)
+        jumped ||= events.jumped.length > 0
+        bounced ||= events.bounced.length > 0
+        state = next
         accumulator -= FIXED_DT
       }
+      if (jumped) playJump()
+      if (bounced) playBounce()
 
       render(ctx, state)
 
       if (state.finished) {
+        stopBgm()
+        playFinish()
         onFinishRef.current(getHeights(state))
         return // 次のコマを予約しない＝ループ終了
       }
@@ -59,7 +74,10 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     rafId = requestAnimationFrame(frame)
 
     // 画面を離れたら必ずループを止める（止め忘れると二重に動く）
-    return () => cancelAnimationFrame(rafId)
+    return () => {
+      cancelAnimationFrame(rafId)
+      stopBgm()
+    }
   }, [initialPlayers])
 
   return (
