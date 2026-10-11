@@ -52,7 +52,9 @@ src/
     collisions.ts          # プレイヤー同士の当たり判定（頭に乗る・横の押し合い）
     keyboard.ts            # 開発用のキーボード操作（スマホの代わり）
     state.ts               # 初期状態の生成、終了時の高さの取り出し
-    render.ts              # Canvas への描画
+    render.ts              # Canvas への描画（青空・太陽・雲・TIME・Round）
+    sprite.ts              # キャラクターのドット絵（20×20、プレイヤーの色で塗り分け）
+    CharacterIcon.tsx      # ゲーム外（ホーム・リザルト）でキャラクターを1体表示する部品
     constants.ts           # ステージの大きさ、制限時間など
     DevGamePage.tsx        # 開発用（/dev/game）：通信なしでゲーム画面だけを確認する
   lib/
@@ -62,6 +64,7 @@ src/
     players.ts             # 参加者への番号と色の割り当て（PCだけが行う）
     useInputSender.ts      # スマホ：ボタンの状態を送る（変化時＋ゲーム中は0.5秒ごと）
     inputBuffer.ts         # PC：届いた入力を保持し、1コマごとに取り出す（短いジャンプの予約もここ）
+    judge.ts               # 勝敗判定（終了した瞬間の高さ、同じ高さは引き分け）
   shared/
     messages.ts            # スマホ⇔PC間のメッセージの型（通信の取り決め）
 ```
