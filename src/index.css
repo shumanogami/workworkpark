@@ -17,6 +17,11 @@ body,
   100% { opacity: 1; }
 }
 
+/* リザルト（階段）で、勝者がぴょんと跳んで次の段へ移る（横・縦の移動は transition、この山なりの動きを重ねる） */
+@keyframes stairs-hop {
+  50% { transform: translateY(-60%); }
+}
+
 body {
   @apply bg-neutral-900 font-dot text-white;
   /* iPhoneの長押しメニュー・テキスト選択を無効化 */
