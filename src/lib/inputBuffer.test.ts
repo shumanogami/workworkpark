@@ -35,6 +35,14 @@ describe('InputBuffer', () => {
     expect(buf.take().a?.jump).toBe(true)
   })
 
+  it('keepOnly で、つながっていない人の入力（ジャンプの予約も）を忘れる', () => {
+    const buf = new InputBuffer()
+    buf.receive(msg('a', { right: true }))
+    buf.receive(msg('b', { right: true, jump: true }))
+    buf.keepOnly(['a'])
+    expect(buf.take()).toEqual({ a: msg('a', { right: true }) })
+  })
+
   it('clear で前の試合の入力を忘れる', () => {
     const buf = new InputBuffer()
     buf.receive(msg('a', { right: true, jump: true }))

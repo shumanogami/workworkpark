@@ -2,7 +2,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
 import CharacterIcon from '../game/CharacterIcon'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
-import { displayName, isNameMessage, normalizeName, resolveNames } from '../lib/playerName'
+import { displayName, isNameMessage, normalizeName, rememberNames, resolveNames } from '../lib/playerName'
 import { assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
 import { getOrCreateRoomCode } from '../lib/room'
 import { useRoomChannel } from '../lib/useRoomChannel'
@@ -87,12 +87,24 @@ export default function HostPage() {
   }
   const players = assigned.players
 
+  // 試合中にスマホが切れても名前を「{番号}P」に戻さないよう、最後に分かっていた名前を覚えておく（方針.md の Q4）
+  // 変わったときだけ覚え直す（effect を使わず描画中に更新する）
+  const [knownNames, setKnownNames] = useState<Record<string, string>>({})
+  const remembered = rememberNames(knownNames, names, presentIds)
+  if (remembered !== knownNames) setKnownNames(remembered)
+
   // 試合の参加者。スタートの時点で固定し、試合の途中では増えない（途中で抜けた人も残す）
   const [matchPlayers, setMatchPlayers] = useState<AssignedPlayer[]>([])
   const miniGamePlayers: MiniGamePlayer[] = matchPlayers.map((p) => ({
     ...p,
-    name: displayName(names[p.playerId], p.number),
+    // 今の名前を優先し、切れている人は覚えていた名前を使う
+    name: displayName(names[p.playerId] ?? remembered[p.playerId], p.number),
   }))
+
+  // 切れた人の入力は「何も押していない」にする（最後の入力のまま走り続けないように）
+  useEffect(() => {
+    inputs.current.keepOnly(presentIds)
+  }, [presentIds])
 
   const game = match ? findMiniGame(match.gameId) : undefined
   const phase: Phase = match ? PHASE_OF_STAGE[match.stage] : 'lobby'

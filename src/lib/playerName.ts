@@ -64,6 +64,24 @@ export function resolveNames(
   return { names, pending: stillPending }
 }
 
+// PC：試合の途中でスマホが切れても、その人の名前を「{番号}P」に戻さないよう、最後に分かっていた名前を覚えておく（方針.md の Q4）
+// つながっている人は今の名前（名前を消した人は消す）、つながっていない人は覚えていた名前のまま
+// 変わりがなければ prev をそのまま返す（React の state に入れて、変わったときだけ描画し直すため）
+export function rememberNames(
+  prev: Record<string, string>,
+  names: Record<string, string>,
+  presentIds: readonly string[],
+): Record<string, string> {
+  const next = { ...prev }
+  for (const id of presentIds) {
+    if (names[id]) next[id] = names[id]
+    else delete next[id]
+  }
+  const keys = Object.keys(next)
+  const same = keys.length === Object.keys(prev).length && keys.every((k) => prev[k] === next[k])
+  return same ? prev : next
+}
+
 // 名前はブラウザに保存し、再接続・再読み込みの後も同じ名前を使う
 // （プライベートブラウズなどで保存できないときは、その画面の間だけ使う）
 export function loadName(): string {
