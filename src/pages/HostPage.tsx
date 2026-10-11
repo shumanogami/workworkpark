@@ -13,9 +13,9 @@ import {
   finishRound,
   type MatchStage,
   type MatchState,
-  STEPS_TO_WIN,
 } from '../platform/match'
 import MiniResult from '../platform/MiniResult'
+import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, MINI_GAMES } from '../platform/registry'
 import type { MiniGamePlayer } from '../platform/types'
 import { EVENTS, type Phase, type PhaseMessage } from '../shared/messages'
@@ -176,23 +176,13 @@ export default function HostPage() {
   }
 
   if (match && match.stage === 'result') {
-    // 仮のリザルト：階段の画面（M8）ができるまで、勝者と段数を並べるだけ
     return (
-      <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
-        <p className="text-xl text-neutral-400">{game?.title}</p>
-        <h1 className="text-5xl">{match.gameWinners.map(nameOf).join('・')} が1段上がった！</h1>
-        <ul className="flex flex-wrap justify-center gap-8">
-          {miniGamePlayers.map((p) => (
-            <li key={p.playerId} className="flex flex-col items-center gap-1 text-xl" style={{ color: p.color }}>
-              <CharacterIcon color={p.color} size={56} />
-              {p.name}
-              <span className="text-neutral-400">
-                {match.steps[p.playerId]} / {STEPS_TO_WIN} 段
-              </span>
-            </li>
-          ))}
-        </ul>
-      </main>
+      <ResultStairs
+        gameTitle={game?.title ?? ''}
+        players={miniGamePlayers}
+        steps={match.steps}
+        gameWinners={match.gameWinners}
+      />
     )
   }
 
