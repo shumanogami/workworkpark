@@ -50,6 +50,8 @@ src/
   pages/
     HostPage.tsx           # PC：ホーム → ラウンド → ミニリザルト → リザルト → 総合優勝 を、試合の進行（platform/match.ts）で切り替える
     ControllerPage.tsx     # スマホ：コントローラー（?room=ABCD でルーム指定）
+    ControllerPanel.tsx    # スマホ：ラウンドの合間にボタンの代わりに出す結果（大きい文字・小さな階段）
+    ControllerDemoPage.tsx # 開発用（/dev/controller）：スマホの合間の表示を場面ごとに並べて確認する
   platform/                # 試合の流れ（第2期）。流れの図は docs/画面遷移図.html
     types.ts               # ミニゲームの共通の形（参加者・入力 → 勝った人の一覧、名前・ひと言の指示）
     registry.ts            # 遊べるミニゲームの一覧。新しいミニゲームはここに1行足す
@@ -78,6 +80,7 @@ src/
     useInputSender.ts      # スマホ：ボタンの状態を送る（変化時＋ゲーム中は0.5秒ごと）
     inputBuffer.ts         # PC：届いた入力を保持し、1コマごとに取り出す（短いジャンプの予約もここ）
     judge.ts               # 勝敗判定（終了した瞬間の高さ、同じ高さは引き分け）
+    controllerView.ts      # スマホに何を出すか（ボタン／ひと言の指示／「勝った！」と階段）を画面の状態から決める
   engine/                  # 複数のゲームで使い回す部品（特定のゲームの物理・描画に依存しない）
     scroll.ts              # 横・縦スクロール（時間とともに速くなり最高速度で頭打ち、ワールド座標→画面座標）
     ScrollDemoPage.tsx     # 開発用（/dev/scroll）：スクロールの動きを確認する

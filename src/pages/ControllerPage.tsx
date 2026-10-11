@@ -1,27 +1,27 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import { playDecide } from '../audio/sfx'
+import { controllerView } from '../lib/controllerView'
 import { displayName, limitName, loadName, normalizeName, saveName } from '../lib/playerName'
 import { useSearchParams } from 'react-router'
 import { getOrCreatePlayerId, normalizeRoomCode } from '../lib/room'
 import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
-import { EVENTS, type NameMessage, type Phase, type PhaseMessage, type PlayerInfo } from '../shared/messages'
+import { EVENTS, type NameMessage, type PhaseMessage, type PlayerInfo } from '../shared/messages'
+import { colors } from '../theme'
+import ControllerPanel from './ControllerPanel'
 
-// 細かい言い回しは M9（スマホの表示の対応）で決める
-const PHASE_LABEL: Record<Phase, string> = {
-  lobby: 'PCの画面でスタートを待ってね',
-  playing: 'ゲーム中！',
-  miniResult: 'ラウンド結果！PCの画面を見てね',
-  result: '結果発表！PCの画面を見てね',
-  champion: '優勝者が決まった！PCの画面を見てね',
-}
+// ボタンを出している間の、名前の下の小さい文字。ラウンドの合間は ControllerPanel に結果を大きく出す（M9）
+const LOBBY_LABEL = 'PCの画面でスタートを待ってね'
+const PLAYING_LABEL = 'ゲーム中！' // ひと言の指示が届いていないときだけ使う
 
 // スマホ側のコントローラー画面。ラフ画どおり、上に自分の番号（自分の色）、左に ←→、右にジャンプ
 export default function ControllerPage() {
   const [searchParams] = useSearchParams()
   const room = normalizeRoomCode(searchParams.get('room'))
   const [playerId] = useState(getOrCreatePlayerId)
-  const [phase, setPhase] = useState<Phase>('lobby')
+  // PCから最後に届いた画面の状態。まだ届いていなければホーム扱い
+  const [phaseMsg, setPhaseMsg] = useState<PhaseMessage>({ phase: 'lobby' })
+  const phase = phaseMsg.phase
   // PCから届いた参加者一覧。まだ届いていなければ null（満員かどうかも分からない）
   const [players, setPlayers] = useState<PlayerInfo[] | null>(null)
   // 自分で付けた名前（空なら「{番号}P」と表示）。保存しておき、再読み込みしても同じ名前を使う
@@ -33,7 +33,7 @@ export default function ControllerPage() {
     (event, payload) => {
       if (event !== EVENTS.phase) return
       const msg = payload as PhaseMessage
-      setPhase(msg.phase)
+      setPhaseMsg(msg)
       if (msg.players) setPlayers(msg.players)
     },
     name,
@@ -52,13 +52,17 @@ export default function ControllerPage() {
   const me = players?.find((p) => p.playerId === playerId)
   const isFull = players !== null && !me
 
+  // 何を出すか（ボタンか、結果か）。つながっていない・参加できないときは、ボタンのまま下の文字で知らせる
+  const view = me ? controllerView(phaseMsg, playerId) : { kind: 'buttons' as const }
+
   let message = ''
   if (status === 'connecting') message = '接続中…'
   else if (status === 'retrying') message = '再接続中…（つながらないときは再読み込みしてください）'
   // 自分が参加者にいない：ホームなら満員、試合中なら途中参加できない（参加者は試合の始めに固定）
   else if (isFull && phase === 'lobby') message = '満員です。空きが出たら参加できます'
   else if (isFull) message = '試合中のため参加できません。次の試合から参加できます'
-  else message = PHASE_LABEL[phase]
+  else if (phase === 'lobby') message = LOBBY_LABEL
+  else if (phase === 'playing' && !phaseMsg.instruction) message = PLAYING_LABEL
 
   return (
     <main className="relative flex h-full touch-none select-none flex-col items-center justify-between overflow-hidden p-4">
@@ -82,13 +86,28 @@ export default function ControllerPage() {
         ) : (
           <p className="text-5xl text-neutral-400">--</p>
         )}
-        <p className="text-sm text-neutral-400">{message}</p>
+        {message ? (
+          <p className="text-sm text-neutral-400">{message}</p>
+        ) : (
+          view.kind === 'buttons' &&
+          view.instruction && (
+            // ラウンド中は、PCと同じひと言の指示（「高く跳べ！」など）を出す
+            <p className="text-2xl" style={{ color: colors.ui.start }}>
+              {view.instruction}
+            </p>
+          )
+        )}
       </div>
 
-      <div className="flex w-full flex-1 items-center justify-around">
-        <DirectionPad onChange={setButton} />
-        <JumpButton onChange={setButton} />
-      </div>
+      {view.kind === 'panel' && !message && me ? (
+        // ラウンドの合間はボタンが効かない（入力を送っていない）ので、ボタンを隠して結果を大きく出す
+        <ControllerPanel view={view} color={me.color} />
+      ) : (
+        <div className="flex w-full flex-1 items-center justify-around">
+          <DirectionPad onChange={setButton} />
+          <JumpButton onChange={setButton} />
+        </div>
+      )}
 
       {/* iPhone の Safari は横向き固定ができないため、縦向きのときは横にするよう案内する */}
       <div className="absolute inset-0 hidden flex-col items-center justify-center gap-4 bg-neutral-900 text-center portrait:flex">
