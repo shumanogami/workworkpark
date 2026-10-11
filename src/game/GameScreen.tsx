@@ -44,6 +44,10 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
 
     // 状態はこの effect の中だけで持つ。StrictMode で effect が2回走っても、毎回まっさらな試合から始まる
     let state = createInitialState(initialPlayers)
+    // 頭上に出す名前（playerId → 名前）。参加者と同じく試合の最初の値で固定する
+    // 名前を出すのはカウントダウン中だけ。試合中と FINISH の演出中は、動きや高さの比較の邪魔にならないよう消す
+    const names: Record<string, string> = {}
+    for (const p of initialPlayers) if (p.name) names[p.playerId] = p.name
     let lastTime: number | null = null
     let accumulator = 0
     let rafId = 0
@@ -71,7 +75,7 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
       // カウントダウン中は物理を止める。その間に押されたボタンは読み捨てる（START! と同時に勝手に跳ばないように）
       if (prevCountdownT < COUNTDOWN_SECONDS) {
         getInputsRef.current()
-        render(ctx, state)
+        render(ctx, state, names)
         drawCountdown(ctx, countdownLabel(prevCountdownT)!)
         rafId = requestAnimationFrame(frame)
         return
