@@ -1,5 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import CharacterIcon from '../game/CharacterIcon'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
 import { displayName, isNameMessage, normalizeName, rememberNames, resolveNames } from '../lib/playerName'
@@ -100,8 +100,6 @@ export default function HostPage() {
     // 今の名前を優先し、切れている人は覚えていた名前を使う
     name: displayName(names[p.playerId] ?? remembered[p.playerId], p.number),
   }))
-  // 試合の参加者のうち、今つながっていない人（「切断中」と出す）
-  const disconnected = miniGamePlayers.filter((p) => !presentIds.includes(p.playerId))
 
   // 切れた人の入力は「何も押していない」にする（最後の入力のまま走り続けないように）
   useEffect(() => {
@@ -161,18 +159,10 @@ export default function HostPage() {
 
   const nameOf = (id: string) => miniGamePlayers.find((p) => p.playerId === id)?.name ?? id
 
-  // 試合中の画面には、切断中の人を重ねて出す（試合は待たずに進める）
-  const withNotice = (screen: ReactNode) => (
-    <div className="relative h-full">
-      {screen}
-      <DisconnectedNotice players={disconnected} />
-    </div>
-  )
-
   if (match && match.stage === 'round' && game) {
     // ラウンドごとに作り直す（ミニゲームは1ラウンド分のことだけを考える）
     const roundKey = `${match.played.length}-${match.gameId}-${match.roundNumber}`
-    return withNotice(
+    return (
       <main className="relative flex h-full items-center justify-center p-4">
         <game.Round
           key={roundKey}
@@ -186,7 +176,7 @@ export default function HostPage() {
   }
 
   if (match && match.stage === 'miniResult' && game) {
-    return withNotice(
+    return (
       <MiniResult
         gameTitle={game.title}
         roundNumber={match.roundNumber}
@@ -199,7 +189,7 @@ export default function HostPage() {
 
   if (match && match.stage === 'result') {
     // 仮のリザルト：階段の画面（M8）ができるまで、勝者と段数を並べるだけ
-    return withNotice(
+    return (
       <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
         <p className="text-xl text-neutral-400">{game?.title}</p>
         <h1 className="text-5xl">{match.gameWinners.map(nameOf).join('・')} が1段上がった！</h1>
@@ -220,7 +210,7 @@ export default function HostPage() {
 
   if (match && match.stage === 'champion') {
     // 総合優勝：「勝者 ○○」と簡単に表示する（細かい見せ方は後で決める。F7）
-    return withNotice(
+    return (
       <main className="flex h-full flex-col items-center justify-center gap-8 p-4">
         <h1 className="text-7xl">勝者 {match.champions.map(nameOf).join('・')}</h1>
         <div className="flex flex-wrap items-end justify-center gap-8">
@@ -307,23 +297,5 @@ function Instruction({ text }: { text: string }) {
     >
       {text}
     </p>
-  )
-}
-
-// 試合中にスマホの接続が切れた人を、画面の左上に小さく出す。戻ってくれば消える（方針.md の Q4）
-function DisconnectedNotice({ players }: { players: MiniGamePlayer[] }) {
-  if (players.length === 0) return null
-  return (
-    <div
-      className="pointer-events-none absolute top-3 left-3 flex flex-col gap-1 px-3 py-2 text-lg"
-      style={{ backgroundColor: colors.ink.dim }}
-    >
-      <p className="text-sm text-neutral-300">切断中</p>
-      {players.map((p) => (
-        <p key={p.playerId} style={{ color: p.color }}>
-          {p.name}
-        </p>
-      ))}
-    </div>
   )
 }
