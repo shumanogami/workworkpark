@@ -1,3 +1,4 @@
+import { colors, fonts } from '../theme'
 import {
   GAME_DURATION,
   GROUND_HEIGHT,
@@ -9,33 +10,19 @@ import {
 import { drawCharacter } from './sprite'
 import type { GameState } from './types'
 
-// ゲーム全体のカラーパレット。レトロ・ドットの見た目にそろえるため、ファミコンの色から選んでいる
-// 影や「黒」は空に合わせて青寄り、光は黄寄りにし、背景はキャラ（src/lib/players.ts の8色）より落ち着かせる
-export const PALETTE = {
-  sky: '#5c94fc', // 空。なめらかなグラデーションはドット絵と合わないため単色にした
-  white: '#fcfcfc', // 雲・パネル・カウントダウンの数字
-  navy: '#1a1a40', // 輪郭・文字・パネルの枠・名前のふち
-  cloudShadow: '#a4e4fc',
-  sun: '#fce0a8',
-  gold: '#f8b800', // 太陽の光・START!・FINISH のバー
-  finish: '#f83800', // FINISH の文字（1P の赤と区別するため朱色）
-  grass: '#00a800',
-  ground: '#881400', // マリオの地面色（#c84c0c）は目立ちすぎるため暗めにした
-  wall: '#3c3c78',
-}
-
+// 色は src/theme.ts から読む（色コードをここに直接書かない）
 const COLORS = {
-  sky: PALETTE.sky,
-  sun: PALETTE.sun,
-  sunRay: PALETTE.gold,
-  cloud: PALETTE.white,
-  cloudShadow: PALETTE.cloudShadow,
-  ground: PALETTE.ground,
-  grass: PALETTE.grass,
-  wall: PALETTE.wall,
-  outline: PALETTE.navy,
-  panel: PALETTE.white,
-  text: PALETTE.navy,
+  sky: colors.sky.main,
+  sun: colors.sun.main,
+  sunRay: colors.sun.ray,
+  cloud: colors.cloud.main,
+  cloudShadow: colors.cloud.shadow,
+  ground: colors.dirt.main,
+  grass: colors.grass.main,
+  wall: colors.wall.main,
+  outline: colors.frame.border,
+  panel: colors.frame.fill,
+  text: colors.ink.main,
 }
 
 // 雲の位置（ラフ画の配置をステージ座標に写したもの）。毎コマ同じ位置に描く
@@ -100,7 +87,7 @@ function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 // 高く跳んで画面上端に近づいたときも名前が切れないよう、上端より上には出さない
 // 濃い青の空では青・緑・黄・水色だけでなく赤・紫・桃も読みにくいため、8色すべてに濃紺のふちを付ける
 function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x: number, top: number) {
-  ctx.font = 'bold 20px "DotGothic16", sans-serif'
+  ctx.font = `bold 20px ${fonts.dot}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'bottom'
   const cx = x + PLAYER_SIZE / 2
@@ -144,7 +131,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, names: R
     drawCharacter(ctx, p.x, toScreenTop(p.y), PLAYER_SIZE, p.color, p.facing, p.stunTime > 0)
   }
 
-  ctx.font = '28px "DotGothic16", sans-serif'
+  ctx.font = `28px ${fonts.dot}`
   ctx.textBaseline = 'middle'
   ctx.textAlign = 'center'
   ctx.fillStyle = COLORS.text
