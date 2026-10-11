@@ -6,6 +6,7 @@ import PlatformDemoPage from './engine/PlatformDemoPage.tsx'
 import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
 import SurvivalDemoPage from './engine/SurvivalDemoPage.tsx'
 import MiniResultDemoPage from './platform/MiniResultDemoPage.tsx'
+import ResultDemoPage from './platform/ResultDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerDemoPage from './pages/ControllerDemoPage.tsx'
@@ -33,6 +34,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dev/survival" element={<SurvivalDemoPage />} />
         {/* 開発用：ミニリザルト（ライト）の見た目を確認する */}
         <Route path="/dev/mini-result" element={<MiniResultDemoPage />} />
+        {/* 開発用：リザルト（階段）の見た目を確認する */}
+        <Route path="/dev/result" element={<ResultDemoPage />} />
         {/* 開発用：スマホのラウンドの合間の表示（勝った・勝てなかった）を確認する */}
         <Route path="/dev/controller" element={<ControllerDemoPage />} />
       </Routes>
