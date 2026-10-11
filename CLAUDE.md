@@ -60,6 +60,8 @@ src/
     room.ts                # ルームコード・playerId の生成と保存（sessionStorage）
     useRoomChannel.ts      # ルームのチャンネルへの参加と Presence（接続中のスマホ一覧）
     players.ts             # 参加者への番号と色の割り当て（PCだけが行う）
+    useInputSender.ts      # スマホ：ボタンの状態を送る（変化時＋ゲーム中は0.5秒ごと）
+    inputBuffer.ts         # PC：届いた入力を保持し、1コマごとに取り出す（短いジャンプの予約もここ）
   shared/
     messages.ts            # スマホ⇔PC間のメッセージの型（通信の取り決め）
 ```

@@ -1,6 +1,6 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
-import type { PlayerPresence } from '../shared/messages'
+import { useEffect, useRef, useState } from 'react'
+import { EVENTS, type PlayerPresence } from '../shared/messages'
 import { roomTopic } from './room'
 import { supabase } from './supabase'
 
@@ -8,14 +8,26 @@ import { supabase } from './supabase'
 // （開発モードでは effect が2回走る影響で、開いた直後に一瞬この状態になることがある）
 export type ChannelStatus = 'connecting' | 'connected' | 'retrying'
 
+export type EventName = (typeof EVENTS)[keyof typeof EVENTS]
+
 // ルームのチャンネルに参加し、接続中のスマホ（Presence）の一覧を返す
 // - PC：playerId を渡さない。一覧を見るだけで、自分は参加者に数えない
 // - スマホ：playerId を渡す。自分を参加者として登録（track）する
 // channel は T4 で入力の送受信（Broadcast）に使う
-export function useRoomChannel(roomCode: string | null, playerId?: string) {
+// onBroadcast：Broadcast（EVENTS のいずれか）を受け取ったときに呼ぶ。再描画で関数が変わっても再接続しない
+export function useRoomChannel(
+  roomCode: string | null,
+  playerId?: string,
+  onBroadcast?: (event: EventName, payload: unknown) => void,
+) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
   const [status, setStatus] = useState<ChannelStatus>('connecting')
   const [presentIds, setPresentIds] = useState<string[]>([])
+
+  const onBroadcastRef = useRef(onBroadcast)
+  useEffect(() => {
+    onBroadcastRef.current = onBroadcast
+  })
 
   useEffect(() => {
     if (!roomCode) return
@@ -36,6 +48,12 @@ export function useRoomChannel(roomCode: string | null, playerId?: string) {
         config: { presence: { key: playerId ?? '', enabled: true } },
       })
       ch = created
+      // 受信の登録は subscribe の前に済ませる（片付けはチャンネルごと捨てることで行う）
+      for (const event of Object.values(EVENTS)) {
+        created.on('broadcast', { event }, ({ payload }) => {
+          if (!cancelled) onBroadcastRef.current?.(event, payload)
+        })
+      }
       created
         .on('presence', { event: 'sync' }, () => {
           if (cancelled) return
