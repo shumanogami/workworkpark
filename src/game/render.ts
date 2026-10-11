@@ -9,20 +9,33 @@ import {
 import { drawCharacter } from './sprite'
 import type { GameState } from './types'
 
-// ラフ画（青空・太陽・雲）に合わせた色
+// ゲーム全体のカラーパレット。レトロ・ドットの見た目にそろえるため、ファミコンの色から選んでいる
+// 影や「黒」は空に合わせて青寄り、光は黄寄りにし、背景はキャラ（src/lib/players.ts の8色）より落ち着かせる
+export const PALETTE = {
+  sky: '#5c94fc', // 空。なめらかなグラデーションはドット絵と合わないため単色にした
+  white: '#fcfcfc', // 雲・パネル・カウントダウンの数字
+  navy: '#1a1a40', // 輪郭・文字・パネルの枠・名前のふち
+  cloudShadow: '#a4e4fc',
+  sun: '#fce0a8',
+  gold: '#f8b800', // 太陽の光・START!・FINISH のバー
+  finish: '#f83800', // FINISH の文字（1P の赤と区別するため朱色）
+  grass: '#00a800',
+  ground: '#881400', // マリオの地面色（#c84c0c）は目立ちすぎるため暗めにした
+  wall: '#3c3c78',
+}
+
 const COLORS = {
-  skyTop: '#5bb8f5',
-  skyBottom: '#bfe6ff',
-  sun: '#ffd23f',
-  sunRay: '#ffb703',
-  cloud: '#ffffff',
-  cloudShadow: '#dceefa',
-  ground: '#7a5a3a',
-  grass: '#5cb85c',
-  wall: '#8a9bb0',
-  outline: '#1a1a1a',
-  panel: '#ffffff',
-  text: '#1a1a1a',
+  sky: PALETTE.sky,
+  sun: PALETTE.sun,
+  sunRay: PALETTE.gold,
+  cloud: PALETTE.white,
+  cloudShadow: PALETTE.cloudShadow,
+  ground: PALETTE.ground,
+  grass: PALETTE.grass,
+  wall: PALETTE.wall,
+  outline: PALETTE.navy,
+  panel: PALETTE.white,
+  text: PALETTE.navy,
 }
 
 // 雲の位置（ラフ画の配置をステージ座標に写したもの）。毎コマ同じ位置に描く
@@ -83,24 +96,19 @@ function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.fillRect(x + 3, y + 9, w - 6, h - 18)
 }
 
-// 空や雲の白に溶けて名前が読みにくい色（src/lib/players.ts の 青・緑・黄・水色）。この色の名前だけ黒いふちを付ける
-// 8色を空の上に並べて見比べて決めた。赤・橙・紫・桃はふちなしでも読める
-const NAME_OUTLINE_COLORS = new Set(['#55aaff', '#55dd55', '#ffcc33', '#33dddd'])
-
 // キャラの頭上に名前を描く。誰の名前か一目でわかるようキャラと同じ色にし、太字で少し大きめにする
 // 高く跳んで画面上端に近づいたときも名前が切れないよう、上端より上には出さない
+// 濃い青の空では青・緑・黄・水色だけでなく赤・紫・桃も読みにくいため、8色すべてに濃紺のふちを付ける
 function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x: number, top: number) {
   ctx.font = 'bold 20px "DotGothic16", sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'bottom'
   const cx = x + PLAYER_SIZE / 2
   const y = Math.max(20, top - 4)
-  if (NAME_OUTLINE_COLORS.has(color.toLowerCase())) {
-    ctx.lineWidth = 4
-    ctx.lineJoin = 'round'
-    ctx.strokeStyle = COLORS.outline
-    ctx.strokeText(name, cx, y)
-  }
+  ctx.lineWidth = 4
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = COLORS.outline
+  ctx.strokeText(name, cx, y)
   ctx.fillStyle = color
   ctx.fillText(name, cx, y)
 }
@@ -108,11 +116,8 @@ function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x:
 // 1コマ分を描画する。座標はステージ座標（960×540）のまま描く
 // names：playerId → 頭上に出す名前（省略・該当なしなら名前は出さない）
 export function render(ctx: CanvasRenderingContext2D, state: GameState, names: Record<string, string> = {}) {
-  // 空（上ほど濃い青）
-  const sky = ctx.createLinearGradient(0, 0, 0, STAGE_HEIGHT - GROUND_HEIGHT)
-  sky.addColorStop(0, COLORS.skyTop)
-  sky.addColorStop(1, COLORS.skyBottom)
-  ctx.fillStyle = sky
+  // 空（単色）
+  ctx.fillStyle = COLORS.sky
   ctx.fillRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT)
 
   drawSun(ctx)
