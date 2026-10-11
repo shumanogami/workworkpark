@@ -10,6 +10,7 @@ import { assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
 import { getOrCreateRoomCode } from '../lib/room'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import { EVENTS, type Phase, type PhaseMessage } from '../shared/messages'
+import { colors } from '../theme'
 
 const MIN_PLAYERS = 2
 
@@ -110,7 +111,7 @@ export default function HostPage() {
     return (
       <main className="flex h-full flex-col items-center justify-center gap-8 p-4">
         {/* ラフ画どおり：勝った人の番号を大きく、その人の色で。複数なら引き分け */}
-        <h1 className="text-7xl" style={{ color: single?.color ?? '#ffffff' }}>
+        <h1 className="text-7xl" style={{ color: single?.color ?? colors.ui.text }}>
           {single ? `${displayName(names[single.playerId], single.number)} WIN!!` : 'DRAW!!'}
         </h1>
         <div className="flex flex-wrap items-end justify-center gap-8">
@@ -123,14 +124,16 @@ export default function HostPage() {
         </div>
         <div className="flex flex-wrap justify-center gap-8">
           <button
-            className="border-4 border-[#ff5555] px-8 py-3 text-2xl text-[#ff5555] disabled:opacity-30"
+            className="border-4 px-8 py-3 text-2xl disabled:opacity-30"
+            style={{ color: colors.ui.retry, borderColor: colors.ui.retry }}
             disabled={!canStart}
             onClick={start}
           >
             もう一度プレイ
           </button>
           <button
-            className="border-4 border-[#55aaff] px-8 py-3 text-2xl text-[#55aaff]"
+            className="border-4 px-8 py-3 text-2xl"
+            style={{ color: colors.ui.home, borderColor: colors.ui.home }}
             onClick={() => setPhase('lobby')}
           >
             ホームへ戻る
