@@ -44,8 +44,22 @@ export function getOrCreateRoomCode(): string {
   return loadOrCreate(HOST_ROOM_KEY, generateRoomCode)
 }
 
-// スマホ：再読み込みしても同じ playerId で復帰させる
+// スマホ：同じスマホなら、再読み込み・タブを閉じた後・QRを読み直した後も同じ playerId で復帰させる（方針.md の Q4）
+// タブを閉じても残るよう localStorage に置く（sessionStorage だと、タブを閉じる・iPhone がタブを破棄すると別人になる）
+// 以前の版で sessionStorage に保存した playerId があれば、それを引き継ぐ
 // crypto.randomUUID() は https 以外（http://192.168... での開発時）のスマホで使えないため、Math.random で作る
+// 注意：同じブラウザの別タブは同じ playerId になる。1台のPCで複数人を試すときは、別のブラウザかシークレットウィンドウを使う
 export function getOrCreatePlayerId(): string {
-  return loadOrCreate(PLAYER_ID_KEY, () => Math.random().toString(36).slice(2, 10))
+  try {
+    const saved = localStorage.getItem(PLAYER_ID_KEY) ?? sessionStorage.getItem(PLAYER_ID_KEY)
+    const playerId = saved || newPlayerId()
+    localStorage.setItem(PLAYER_ID_KEY, playerId)
+    return playerId
+  } catch {
+    return newPlayerId()
+  }
+}
+
+function newPlayerId(): string {
+  return Math.random().toString(36).slice(2, 10)
 }

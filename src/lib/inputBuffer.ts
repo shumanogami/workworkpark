@@ -24,6 +24,14 @@ export class InputBuffer {
     return inputs
   }
 
+  // つながっている人以外の入力を忘れる。切断した人は「何も押していない」扱いにする（方針.md の Q4）
+  // 忘れないと、右を押したまま切れた人のキャラが、最後の入力のまま走り続ける
+  keepOnly(presentIds: readonly string[]): void {
+    const present = new Set(presentIds)
+    for (const id of [...this.latest.keys()]) if (!present.has(id)) this.latest.delete(id)
+    for (const id of [...this.jumpReserved]) if (!present.has(id)) this.jumpReserved.delete(id)
+  }
+
   // 試合の切り替え時に前の試合の押しっぱなしを持ち越さないよう、全部忘れる
   clear(): void {
     this.latest.clear()

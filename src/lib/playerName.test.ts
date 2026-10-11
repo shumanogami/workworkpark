@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayName, isNameMessage, limitName, namesFromPresence, normalizeName, resolveNames } from './playerName'
+import { displayName, isNameMessage, limitName, namesFromPresence, normalizeName, rememberNames, resolveNames } from './playerName'
 
 describe('limitName', () => {
   it('8文字までは入り、9文字目以降は入らない', () => {
@@ -75,6 +75,21 @@ describe('resolveNames', () => {
 
   it('ほかの人の名前はそのまま', () => {
     expect(resolveNames({ b: 'じろう' }, { a: 'たろう' }).names).toEqual({ a: 'たろう', b: 'じろう' })
+  })
+})
+
+describe('rememberNames（切断した人の名前を覚えておく）', () => {
+  it('切れた人（presentIds にいない人）は、覚えていた名前のまま', () => {
+    expect(rememberNames({ a: 'たろう', b: 'はなこ' }, { a: 'たろう' }, ['a'])).toEqual({ a: 'たろう', b: 'はなこ' })
+  })
+
+  it('つながっている人は今の名前にする。名前を消した人は消す', () => {
+    expect(rememberNames({ a: 'たろう', b: 'はなこ' }, { a: 'たろ' }, ['a', 'b'])).toEqual({ a: 'たろ' })
+  })
+
+  it('変わりがなければ同じものを返す（描画し直さないため）', () => {
+    const prev = { a: 'たろう' }
+    expect(rememberNames(prev, { a: 'たろう' }, ['a'])).toBe(prev)
   })
 })
 
