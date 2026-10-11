@@ -9,6 +9,7 @@
 export const EVENTS = {
   input: 'input',
   phase: 'phase',
+  name: 'name',
 } as const
 
 // スマホ → PC：ボタンの状態。
@@ -38,7 +39,16 @@ export type PhaseMessage = {
   players?: PlayerInfo[]
 }
 
+// スマホ → PC：名前を変えた瞬間に送る（PCの表示をすぐ変えるため）
+// Presence の更新はPCに届くまで約3秒かかるため、それまでの間はこちらの名前を表示に使う
+export type NameMessage = {
+  playerId: string
+  name: string // 空なら初期値（「{番号}P」）に戻した
+}
+
 // Presence でスマホが自分の情報として登録する内容
+// 名前を変えたら、スマホが track でこの内容を登録し直す。PCは Presence の変化を受け取って表示を更新する
 export type PlayerPresence = {
   playerId: string
+  name?: string // プレイヤー名（最大8文字）。空・なしなら PC は「{番号}P」と表示する
 }

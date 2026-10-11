@@ -5,6 +5,7 @@ import GameScreen from '../game/GameScreen'
 import type { Heights } from '../game/types'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
 import { judgeWinners } from '../lib/judge'
+import { displayName, isNameMessage, normalizeName, resolveNames } from '../lib/playerName'
 import { assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
 import { getOrCreateRoomCode } from '../lib/room'
 import { useRoomChannel } from '../lib/useRoomChannel'
@@ -23,9 +24,31 @@ export default function HostPage() {
   // 入力はゲームの1コマごとに読むので、state ではなく ref に置く（届くたびに再描画しないように）
   const inputs = useRef(new InputBuffer())
 
-  const { channel, status, presentIds } = useRoomChannel(roomCode, undefined, (event, payload) => {
+  // Broadcast ですぐに届いた名前（playerId → 名前）。Presence が追いつくまで表示に使う
+  const [pendingNames, setPendingNames] = useState<Record<string, string>>({})
+
+  // presenceNames：スマホで付けた名前（Presence で届く。約3秒遅れる）
+  const {
+    channel,
+    status,
+    presentIds,
+    names: presenceNames,
+  } = useRoomChannel(roomCode, undefined, (event, payload) => {
     if (event === EVENTS.input && isInputMessage(payload)) inputs.current.receive(payload)
+    if (event === EVENTS.name && isNameMessage(payload)) {
+      setPendingNames((prev) => ({ ...prev, [payload.playerId]: normalizeName(payload.name) }))
+    }
   })
+
+  // 表示に使う名前。名前がない人は「{番号}P」と表示する
+  const resolved = resolveNames(presenceNames, pendingNames)
+  const names = resolved.names
+  // Presence が追いついた分は取り除く（Presence が変わったときだけ。effect を使わず描画中に更新する）
+  const [seenPresenceNames, setSeenPresenceNames] = useState(presenceNames)
+  if (seenPresenceNames !== presenceNames) {
+    setSeenPresenceNames(presenceNames)
+    setPendingNames(resolved.pending)
+  }
 
   // 番号と色は前回の割り当てを引き継いで決める（PCだけが決める）
   // 接続中の一覧が変わったときだけ割り当て直す（effect を使わず描画中に更新するのが React の推奨）
@@ -88,13 +111,13 @@ export default function HostPage() {
       <main className="flex h-full flex-col items-center justify-center gap-8 p-4">
         {/* ラフ画どおり：勝った人の番号を大きく、その人の色で。複数なら引き分け */}
         <h1 className="text-7xl" style={{ color: single?.color ?? '#ffffff' }}>
-          {single ? `${single.number}P WIN!!` : 'DRAW!!'}
+          {single ? `${displayName(names[single.playerId], single.number)} WIN!!` : 'DRAW!!'}
         </h1>
         <div className="flex flex-wrap items-end justify-center gap-8">
           {winners.map((p) => (
             <div key={p.playerId} className="flex flex-col items-center gap-2">
               <CharacterIcon color={p.color} size={single ? 200 : 120} />
-              {!single && <span style={{ color: p.color }}>{p.number}P</span>}
+              {!single && <span style={{ color: p.color }}>{displayName(names[p.playerId], p.number)}</span>}
             </div>
           ))}
         </div>
@@ -151,7 +174,7 @@ export default function HostPage() {
         {players.map((p) => (
           <li key={p.playerId} className="flex flex-col items-center gap-1 text-xl" style={{ color: p.color }}>
             <CharacterIcon color={p.color} size={48} />
-            {p.number}P
+            {displayName(names[p.playerId], p.number)}
           </li>
         ))}
       </ul>
