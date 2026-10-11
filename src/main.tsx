@@ -1,10 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { installAudioUnlock } from './audio/audio'
 import DevGamePage from './game/DevGamePage.tsx'
 import './index.css'
 import ControllerPage from './pages/ControllerPage.tsx'
 import HostPage from './pages/HostPage.tsx'
+
+// ブラウザは利用者が操作するまで音を鳴らせないため、最初のクリック・タップ・キー入力で音を有効にする
+installAudioUnlock()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
