@@ -93,7 +93,8 @@ export default function ResultStairs({ gameTitle, players, steps, gameWinners }:
               <p
                 className="absolute left-1/2 -translate-x-1/2 font-bold whitespace-nowrap"
                 style={{
-                  bottom: spot.nameRaised ? '220%' : '110%',
+                  // 上の段は1行分（文字の大きさ 1.2cqw ＋ 行間）だけ上げる。離しすぎると、だれの名前か分かりにくい
+                  bottom: spot.nameRaised ? 'calc(110% + 1.5cqw)' : '110%',
                   fontSize: '1.2cqw',
                   color: p.color,
                 }}
