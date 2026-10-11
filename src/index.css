@@ -10,6 +10,13 @@ body,
   height: 100%;
 }
 
+/* ミニリザルトで、今回点いたライトを3回点滅させる（ドット絵に合わせて、なめらかに変えず点く・消えるを切り替える） */
+@keyframes lamp-blink {
+  0%, 30%, 60% { opacity: 1; }
+  15%, 45% { opacity: 0.15; }
+  100% { opacity: 1; }
+}
+
 body {
   @apply bg-neutral-900 font-dot text-white;
   /* iPhoneの長押しメニュー・テキスト選択を無効化 */
