@@ -4,6 +4,7 @@ import type { InputMessage } from '../shared/messages'
 export type GamePlayer = {
   playerId: string
   color: string
+  name?: string // キャラの頭上に出す名前。なければ出さない（物理には使わない）
 }
 
 // 1人分の状態。座標は物理計算しやすいよう「上が正」で持ち、描画するときに画面座標へ変換する

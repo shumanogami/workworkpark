@@ -14,10 +14,10 @@ import type { GamePlayer, Heights } from './types'
 
 // 開発用：通信なしでゲーム画面だけを動かすページ（/dev/game）。野上側の画面ができる前でも確認できるようにする
 const DEV_PLAYERS: GamePlayer[] = [
-  { playerId: 'p1', color: '#ff5555' },
-  { playerId: 'p2', color: '#55aaff' },
-  { playerId: 'p3', color: '#55dd55' },
-  { playerId: 'p4', color: '#ffcc33' },
+  { playerId: 'p1', color: '#ff5555', name: '1P' },
+  { playerId: 'p2', color: '#55aaff', name: 'しゅうま' },
+  { playerId: 'p3', color: '#55dd55', name: '3P' },
+  { playerId: 'p4', color: '#ffcc33', name: 'ABCDEFGH' },
 ]
 
 const KEY_HELP = [

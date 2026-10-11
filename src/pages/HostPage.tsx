@@ -93,7 +93,7 @@ export default function HostPage() {
       <main className="flex h-full items-center justify-center p-4">
         <GameScreen
           key={round}
-          players={matchPlayers}
+          players={matchPlayers.map((p) => ({ ...p, name: displayName(names[p.playerId], p.number) }))}
           getInputs={() => inputs.current.take()}
           onFinish={(h) => {
             setHeights(h)

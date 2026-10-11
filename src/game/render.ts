@@ -83,8 +83,31 @@ function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.fillRect(x + 3, y + 9, w - 6, h - 18)
 }
 
+// 空や雲の白に溶けて名前が読みにくい色（src/lib/players.ts の 青・緑・黄・水色）。この色の名前だけ黒いふちを付ける
+// 8色を空の上に並べて見比べて決めた。赤・橙・紫・桃はふちなしでも読める
+const NAME_OUTLINE_COLORS = new Set(['#55aaff', '#55dd55', '#ffcc33', '#33dddd'])
+
+// キャラの頭上に名前を描く。誰の名前か一目でわかるようキャラと同じ色にし、太字で少し大きめにする
+// 高く跳んで画面上端に近づいたときも名前が切れないよう、上端より上には出さない
+function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x: number, top: number) {
+  ctx.font = 'bold 20px "DotGothic16", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  const cx = x + PLAYER_SIZE / 2
+  const y = Math.max(20, top - 4)
+  if (NAME_OUTLINE_COLORS.has(color.toLowerCase())) {
+    ctx.lineWidth = 4
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = COLORS.outline
+    ctx.strokeText(name, cx, y)
+  }
+  ctx.fillStyle = color
+  ctx.fillText(name, cx, y)
+}
+
 // 1コマ分を描画する。座標はステージ座標（960×540）のまま描く
-export function render(ctx: CanvasRenderingContext2D, state: GameState) {
+// names：playerId → 頭上に出す名前（省略・該当なしなら名前は出さない）
+export function render(ctx: CanvasRenderingContext2D, state: GameState, names: Record<string, string> = {}) {
   // 空（上ほど濃い青）
   const sky = ctx.createLinearGradient(0, 0, 0, STAGE_HEIGHT - GROUND_HEIGHT)
   sky.addColorStop(0, COLORS.skyTop)
@@ -104,6 +127,13 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.fillRect(0, 0, WALL_WIDTH, STAGE_HEIGHT - GROUND_HEIGHT)
   ctx.fillRect(STAGE_WIDTH - WALL_WIDTH, 0, WALL_WIDTH, STAGE_HEIGHT - GROUND_HEIGHT)
 
+  // 名前はキャラより先に描く。積み重なったとき、下の人の名前が上の人の体に隠れ、
+  // 上の人の名前の上に重ならないようにするため（いちばん上の人の名前は必ず見える）
+  for (const p of state.players) {
+    const name = names[p.playerId]
+    if (name) drawName(ctx, name, p.color, p.x, toScreenTop(p.y))
+  }
+
   // プレイヤー（羽のある子のドット絵）。弾かれている間は目を閉じる
   for (const p of state.players) {
     drawCharacter(ctx, p.x, toScreenTop(p.y), PLAYER_SIZE, p.color, p.facing, p.stunTime > 0)
@@ -111,6 +141,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState) {
 
   ctx.font = '28px "DotGothic16", sans-serif'
   ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
   ctx.fillStyle = COLORS.text
 
   // 残り時間（切り上げで表示し、0 になった瞬間に終了）。ラフ画どおり「TIME 00:10」の形
