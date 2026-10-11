@@ -9,6 +9,7 @@
 export const EVENTS = {
   input: 'input',
   phase: 'phase',
+  name: 'name',
 } as const
 
 // スマホ → PC：ボタンの状態。
@@ -36,6 +37,13 @@ export type PhaseMessage = {
   winnerIds?: string[]
   // 参加者の一覧（未決定仕様 U4 の A 案）。スマホはここから自分の番号と色を探す。自分がいなければ満員
   players?: PlayerInfo[]
+}
+
+// スマホ → PC：名前を変えた瞬間に送る（PCの表示をすぐ変えるため）
+// Presence の更新はPCに届くまで約3秒かかるため、それまでの間はこちらの名前を表示に使う
+export type NameMessage = {
+  playerId: string
+  name: string // 空なら初期値（「{番号}P」）に戻した
 }
 
 // Presence でスマホが自分の情報として登録する内容

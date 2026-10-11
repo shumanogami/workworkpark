@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router'
 import { getOrCreatePlayerId, normalizeRoomCode } from '../lib/room'
 import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
-import { EVENTS, type Phase, type PhaseMessage, type PlayerInfo } from '../shared/messages'
+import { EVENTS, type NameMessage, type Phase, type PhaseMessage, type PlayerInfo } from '../shared/messages'
 
 const PHASE_LABEL: Record<Phase, string> = {
   lobby: 'PCの画面でスタートを待ってね',
@@ -66,9 +66,12 @@ export default function ControllerPage() {
             // 試合中は誤ってタップしてキーボードが出ないよう、名前を変えられないようにする
             editable={phase !== 'playing'}
             onConfirm={(next) => {
-              setName(next)
+              setName(next) // Presence の登録内容の更新は useRoomChannel が行う（PCに届くまで約3秒かかる）
               saveName(next)
               playDecide()
+              // PCの表示をすぐ変えるため、Broadcast でも名前を送る
+              const payload: NameMessage = { playerId, name: next }
+              void channel?.send({ type: 'broadcast', event: EVENTS.name, payload })
             }}
           />
         ) : (

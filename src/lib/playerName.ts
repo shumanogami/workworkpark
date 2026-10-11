@@ -38,6 +38,32 @@ export function namesFromPresence(state: Record<string, unknown[]>): Record<stri
   return names
 }
 
+// スマホから Broadcast で届いた名前の通知か（形の確認）
+export function isNameMessage(payload: unknown): payload is { playerId: string; name: string } {
+  const p = payload as { playerId?: unknown; name?: unknown } | null
+  return typeof p?.playerId === 'string' && typeof p?.name === 'string'
+}
+
+// 表示に使う名前を決める
+// - presence：Presence から読んだ名前（正しい名前の置き場所だが、PCに届くまで約3秒遅れる）
+// - pending：Broadcast ですぐに届いた名前（playerId → 名前。'' は初期値に戻した）
+// Broadcast の名前は、Presence が同じ名前に追いつくまで優先する（遅れて届いた古い名前に戻らないように）
+// 返り値の pending は、追いついた分を取り除いたもの
+export function resolveNames(
+  presence: Record<string, string>,
+  pending: Record<string, string>,
+): { names: Record<string, string>; pending: Record<string, string> } {
+  const names = { ...presence }
+  const stillPending: Record<string, string> = {}
+  for (const [playerId, name] of Object.entries(pending)) {
+    if ((presence[playerId] ?? '') === name) continue // Presence が追いついた
+    stillPending[playerId] = name
+    if (name) names[playerId] = name
+    else delete names[playerId]
+  }
+  return { names, pending: stillPending }
+}
+
 // 名前はブラウザに保存し、再接続・再読み込みの後も同じ名前を使う
 // （プライベートブラウズなどで保存できないときは、その画面の間だけ使う）
 export function loadName(): string {
