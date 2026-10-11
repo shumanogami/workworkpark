@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { startBgm, stopBgm } from '../audio/bgm'
 import { playBounce, playCountdownGo, playCountdownTick, playFinish, playJump } from '../audio/sfx'
-import { FIXED_DT, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
+import { FIXED_DT, RENDER_SCALE, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
 import { render } from './render'
 import { detectEvents } from './events'
 import { drawCountdown, drawFinish } from './overlay'
@@ -22,6 +22,10 @@ type Props = {
   onFinish: (heights: Heights) => void // 10秒経って FINISH の演出が終わったら1回だけ呼ぶ（高さは10秒経った瞬間のもの）
 }
 
+// 全画面にするキー。どのキーでも全画面にすると、開発用ページでキャラを動かしただけで全画面になってしまうため1つに決める
+// 文字キーはキャラの操作（/dev/game）と重なるため、ゲームで使わないファンクションキーにした（Esc は全画面を抜けるキーなので使えない）
+const FULLSCREEN_KEY = 'F4'
+
 // 1試合分のゲーム画面。もう一度遊ぶときは、親が key を変えて作り直す
 // 流れ：カウントダウン（3・2・1・START!）→ 10秒の試合 → FINISH とバーの演出 → onFinish
 export default function GameScreen({ players, getInputs, onFinish }: Props) {
@@ -38,9 +42,32 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     onFinishRef.current = onFinish
   })
 
+  // 全画面表示かどうか。全画面のときだけ canvas を画面いっぱいに広げる
+  const [isFullscreen, setIsFullscreen] = useState(() => document.fullscreenElement !== null)
+  useEffect(() => {
+    // Esc などで全画面を抜けたときも表示を戻せるよう、ブラウザからの知らせで状態を合わせる
+    const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
+    // ブラウザはキー入力やクリックの直後にしか全画面を許さないため、ゲーム画面で決まったキーが押されたときに全画面にする
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== FULLSCREEN_KEY || document.fullscreenElement) return
+      e.preventDefault() // ブラウザが F4 に割り当てている動き（アドレスバーの操作など）が同時に起きないように
+      // canvas だけでなくページ全体を全画面にする。canvas だけだと、リザルト画面へ切り替わったときに全画面が解除されるため
+      // 全画面が許されない環境（埋め込み表示など）では失敗するが、ゲームは続けられるので無視する
+      document.documentElement.requestFullscreen().catch(() => {})
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
+
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx) return
+    // 以降はステージの座標（960×540）のまま描けば、canvas（1920×1080）いっぱいに拡大される
+    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0)
 
     // 状態はこの effect の中だけで持つ。StrictMode で effect が2回走っても、毎回まっさらな試合から始まる
     let state = createInitialState(initialPlayers)
@@ -132,9 +159,17 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
   return (
     <canvas
       ref={canvasRef}
-      width={STAGE_WIDTH}
-      height={STAGE_HEIGHT}
-      className="block aspect-video max-h-full max-w-full [image-rendering:pixelated]"
+      width={STAGE_WIDTH * RENDER_SCALE}
+      height={STAGE_HEIGHT * RENDER_SCALE}
+      // 全画面：画面の上に重ねて、16:9 を保ったまま最大まで広げる（16:9 でないモニターでは黒い帯が出る）
+      //   拡大するときはドット絵がぼやけないよう pixelated にする
+      // 通常：これまでどおり 960×540 で表示し、ウィンドウが小さければ縮める
+      //   1920×1080 を縮めて表示するので、間引きで線が欠けないよう、なめらかに縮める（pixelated にしない）
+      className={
+        isFullscreen
+          ? 'fixed inset-0 z-50 block h-full w-full bg-black object-contain [image-rendering:pixelated]'
+          : 'block h-[540px] max-h-full w-[960px] max-w-full object-contain'
+      }
     />
   )
 }
