@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { startBgm, stopBgm } from '../audio/bgm'
-import { playBounce, playFinish, playJump } from '../audio/sfx'
+import { playBounce, playCountdownGo, playCountdownTick, playFinish, playJump } from '../audio/sfx'
 import { FIXED_DT, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
 import { render } from './render'
 import { detectEvents } from './events'
+import { drawCountdown, drawFinish } from './overlay'
+import {
+  COUNTDOWN_SECONDS,
+  countdownBeat,
+  countdownLabel,
+  finishView,
+  highestHead,
+} from './sequence'
 import { createInitialState, getHeights } from './state'
 import { step } from './step'
 import type { GamePlayer, Heights, Inputs } from './types'
@@ -11,10 +19,11 @@ import type { GamePlayer, Heights, Inputs } from './types'
 type Props = {
   players: GamePlayer[] // 参加者（野上側 → 芦田側）。最初に表示したときの値で試合を行い、途中の変更は反映しない
   getInputs: () => Inputs // 今のボタン状態（物理を1コマ進めるたびに呼ぶ）
-  onFinish: (heights: Heights) => void // 10秒経ったら1回だけ呼ぶ
+  onFinish: (heights: Heights) => void // 10秒経って FINISH の演出が終わったら1回だけ呼ぶ（高さは10秒経った瞬間のもの）
 }
 
 // 1試合分のゲーム画面。もう一度遊ぶときは、親が key を変えて作り直す
+// 流れ：カウントダウン（3・2・1・START!）→ 10秒の試合 → FINISH とバーの演出 → onFinish
 export default function GameScreen({ players, getInputs, onFinish }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -38,12 +47,35 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     let lastTime: number | null = null
     let accumulator = 0
     let rafId = 0
-    startBgm()
+    // 演出の経過時間（秒）。カウントダウンは描画の開始から、FINISH は10秒経った瞬間から数える
+    let countdownT = 0
+    let prevCountdownT: number | null = null
+    let finishT: number | null = null
+    let finishTarget = 0
 
     const frame = (time: number) => {
       // 前のコマからの経過時間。タブが裏に回って長く止まった後に一気に進まないよう上限を設ける
       const delta = lastTime === null ? 0 : Math.min((time - lastTime) / 1000, 0.25)
       lastTime = time
+
+      // カウントダウンの音：3・2・1 で「ピッ」、START! で「ポーン」と同時に BGM を流し始める
+      const beat = countdownBeat(prevCountdownT, countdownT)
+      if (beat === 'tick') playCountdownTick()
+      if (beat === 'go') {
+        playCountdownGo()
+        startBgm()
+      }
+      prevCountdownT = countdownT
+      countdownT += delta
+
+      // カウントダウン中は物理を止める。その間に押されたボタンは読み捨てる（START! と同時に勝手に跳ばないように）
+      if (prevCountdownT < COUNTDOWN_SECONDS) {
+        getInputsRef.current()
+        render(ctx, state)
+        drawCountdown(ctx, countdownLabel(prevCountdownT)!)
+        rafId = requestAnimationFrame(frame)
+        return
+      }
       accumulator += delta
 
       // 物理は1/60秒刻みで進める（画面が120Hzでも60Hzでも同じ結果になるように）
@@ -62,12 +94,25 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
       if (bounced) playBounce()
 
       render(ctx, state)
+      const label = countdownLabel(prevCountdownT)
+      if (label) drawCountdown(ctx, label)
 
+      // 10秒経ったら物理を止めて FINISH の演出。終わったらリザルトへ（高さは10秒経った瞬間のまま）
       if (state.finished) {
-        stopBgm()
-        playFinish()
-        onFinishRef.current(getHeights(state))
-        return // 次のコマを予約しない＝ループ終了
+        if (finishT === null) {
+          finishT = 0
+          finishTarget = highestHead(state)
+          stopBgm()
+          playFinish()
+        } else {
+          finishT += delta
+        }
+        const view = finishView(finishT, finishTarget)
+        drawFinish(ctx, view.barHeight)
+        if (view.done) {
+          onFinishRef.current(getHeights(state))
+          return // 次のコマを予約しない＝ループ終了
+        }
       }
       rafId = requestAnimationFrame(frame)
     }
