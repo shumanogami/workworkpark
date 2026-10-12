@@ -50,7 +50,7 @@ describe('コイン集めの1コマ', () => {
     expect(r.x + r.width).toBeLessThanOrEqual(left + STAGE_WIDTH + 0.01)
   })
 
-  it('ずっと右を押しても、画面の右の1/3には行けない', () => {
+  it('ずっと右を押しても、画面の右端より右には行けない', () => {
     const s = run(createCoinState(['a'], 1), 6, () => ({ a: { ...NONE, right: true } }))
     expect(s.runners[0].x + PLAYER_SIZE).toBeLessThanOrEqual(s.scroll.offset + RIGHT_LIMIT + 0.01)
   })
@@ -120,5 +120,21 @@ describe('コイン集めの1コマ', () => {
       // 壁に押される分（スクロールした距離）より、自分の力で60px以上先へ進んでいる
       expect(s.runners[0].x).toBeGreaterThan(start + s.scroll.offset + 60)
     }
+  })
+
+  it('左の壁に押されている人も、右を押せば壁から離れて進める（壁に押されっぱなしにならない）', () => {
+    for (const seed of [11, 12345, 999999, 31337]) {
+      const ids = ['p1', 'p2']
+      // 9秒、何も押さずに壁に押される → 右を押し続ける
+      const idle = run(createCoinState(ids, seed), 9)
+      expect(Math.min(...idle.runners.map((r) => r.x - idle.scroll.offset))).toBeLessThan(1) // 先頭が壁に張り付いている
+      const go = run(idle, 2, () => ({ p1: { ...NONE, right: true }, p2: { ...NONE, right: true } }))
+      for (const r of go.runners) expect(r.x - go.scroll.offset).toBeGreaterThan(100)
+    }
+  })
+
+  it('画面に映っている範囲は、右端まで動ける', () => {
+    const s = run(createCoinState(['a'], 1), 8, () => ({ a: { ...NONE, right: true } }))
+    expect(s.runners[0].x + PLAYER_SIZE).toBeGreaterThan(s.scroll.offset + STAGE_WIDTH - 5)
   })
 })

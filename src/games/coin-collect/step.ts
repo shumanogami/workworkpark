@@ -33,6 +33,7 @@ export type CoinState = {
 export type CoinInputs = Record<string, JumperInput>
 
 const POP_SECONDS = 0.35
+const WALL_MARGIN = 1000 // 左の壁を物理に渡さないための、十分に遠い左端
 const KEEP_BEHIND = 200 // 画面の左端よりこれだけ左の足場は、もう要らない
 
 export function createCoinState(playerIds: string[], seed: number): CoinState {
@@ -83,8 +84,10 @@ export function step(state: CoinState, inputs: CoinInputs, dt: number): CoinStat
   const scroll = stepScroll(state.scroll, SCROLL, dt)
   const { from: left, to: right } = visibleRange(SCROLL, scroll, STAGE_WIDTH)
   const limit = left + RIGHT_LIMIT
-  const jumper = { ...JUMPER, minX: left, maxX: limit }
-  const collision = { ...COLLISION, minX: left, maxX: limit }
+  // 左の壁はここでは扱わない（moveJumper に任せると、壁に当たるたびに横の速さが 0 に戻され、
+  // 歩く速さが壁の進む速さより小さいコマでは、壁に押された人が永久に動き出せなくなる）。右端だけ渡す
+  const jumper = { ...JUMPER, minX: left - WALL_MARGIN, maxX: limit }
+  const collision = { ...COLLISION, minX: left - WALL_MARGIN, maxX: limit }
 
   const stage = extendStage(state.gen, right + GENERATE_AHEAD)
   const platforms = [...state.platforms.filter((p) => p.x + p.width > left - KEEP_BEHIND), ...stage.platforms]
@@ -93,7 +96,9 @@ export function step(state: CoinState, inputs: CoinInputs, dt: number): CoinStat
     const m = moveJumper(r, inputs[r.playerId], dt, jumper)
     return { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
   })
-  const runners = resolveJumperCollisions(state.runners, moved, collision)
+  const resolved = resolveJumperCollisions(state.runners, moved, collision)
+  // 左の壁：壁より左にいる人は、壁の位置まで押し出す。横の速さは右向きなら残す（残さないと、壁から離れられない）
+  const runners = resolved.map((r) => (r.x < left ? { ...r, x: left, vx: Math.max(r.vx, 0) } : r))
 
   // コインを取る。画面の左に流れていったコインは捨てる
   const { remaining, pickups } = collectItems(runners, [...state.coins, ...stage.coins])
