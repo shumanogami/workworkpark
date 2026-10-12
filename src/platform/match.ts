@@ -16,7 +16,7 @@ export type MatchStage = 'round' | 'miniResult' | 'result' | 'champion'
 
 export type MatchState = {
   stage: MatchStage
-  players: string[] // 参加者（試合の始めに固定。途中で増えない）
+  players: string[] // 参加者（試合の始めに決め、途中で来た人は addPlayers で加える。抜けた人も残す）
   gameId: string // 今遊んでいるミニゲーム
   played: string[] // 今の一巡で遊んだミニゲーム（全部遊ぶまで同じゲームを選ばないため）
   roundNumber: number // 今のミニゲームの何ラウンド目か（1から）
@@ -66,6 +66,21 @@ export function createMatch(players: string[], gameIds: readonly string[], rando
     roundWinners: [],
     gameWinners: [],
     champions: [],
+  }
+}
+
+// 試合の途中で来た人を加える。勝ち数も段数も0から始める（方針.md の「途中参加」）
+// ラウンドの最中はミニゲームが参加者を最初に決めてしまうので加えない（次のラウンドの始めに呼ぶ）
+// すでにいる人は二重に加えない。加わる人がいなければ同じ state を返す
+export function addPlayers(state: MatchState, ids: string[]): MatchState {
+  if (state.stage === 'champion') return state
+  const added = [...new Set(ids)].filter((id) => !state.players.includes(id))
+  if (added.length === 0) return state
+  return {
+    ...state,
+    players: [...state.players, ...added],
+    wins: { ...state.wins, ...zeros(added) },
+    steps: { ...state.steps, ...zeros(added) },
   }
 }
 

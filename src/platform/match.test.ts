@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addPlayers,
   afterMiniResult,
   afterResult,
   createMatch,
@@ -146,5 +147,36 @@ describe('順番を守らない呼び出しは無視する', () => {
     const s = createMatch(PLAYERS, GAMES, first)
     expect(afterMiniResult(s)).toBe(s)
     expect(afterResult(s, GAMES, first)).toBe(s)
+  })
+})
+
+describe('途中参加（addPlayers）', () => {
+  it('途中で来た人は、勝ち数も段数も0から始まり、ほかの人の記録は変わらない', () => {
+    const s = afterMiniResult(finishRound(createMatch(PLAYERS, GAMES, first), ['a']))
+    const joined = addPlayers(s, ['d'])
+    expect(joined.players).toEqual(['a', 'b', 'c', 'd'])
+    expect(joined.wins).toEqual({ a: 1, b: 0, c: 0, d: 0 })
+    expect(joined.steps.d).toBe(0)
+  })
+
+  it('加わった人も、勝てばライトが点き、3勝すればミニゲームの勝者になる', () => {
+    const s = addPlayers(createMatch(PLAYERS, GAMES, first), ['d'])
+    const after = winRounds(s, ['d'], WINS_TO_CLEAR)
+    expect(after.stage).toBe('result')
+    expect(after.gameWinners).toEqual(['d'])
+    expect(after.steps.d).toBe(1)
+  })
+
+  it('すでにいる人は二重に加えず、加わる人がいなければ同じ state を返す', () => {
+    const s = createMatch(PLAYERS, GAMES, first)
+    expect(addPlayers(s, ['a', 'b'])).toBe(s)
+    expect(addPlayers(s, ['d', 'd', 'a']).players).toEqual(['a', 'b', 'c', 'd'])
+  })
+
+  it('総合優勝が決まった後は加えない', () => {
+    let s = createMatch(PLAYERS, GAMES, first)
+    for (let i = 0; i < STEPS_TO_WIN; i++) s = afterResult(winRounds(s, ['a'], WINS_TO_CLEAR), GAMES, first)
+    expect(s.stage).toBe('champion')
+    expect(addPlayers(s, ['d'])).toBe(s)
   })
 })

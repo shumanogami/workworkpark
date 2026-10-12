@@ -2,6 +2,7 @@ import { useRef, useState, type PointerEvent } from 'react'
 import { playDecide } from '../audio/sfx'
 import { displayName, limitName, loadName, normalizeName, saveName } from '../lib/playerName'
 import { useSearchParams } from 'react-router'
+import { MAX_PLAYERS } from '../lib/players'
 import { getOrCreatePlayerId, normalizeRoomCode } from '../lib/room'
 import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
@@ -51,9 +52,11 @@ export default function ControllerPage() {
   let message = ''
   if (status === 'connecting') message = '接続中…'
   else if (status === 'retrying') message = '再接続中…（つながらないときは再読み込みしてください）'
-  // 自分が参加者にいない：ホームなら満員、試合中なら途中参加できない（参加者は試合の始めに固定）
+  // 自分が参加者にいない：ホームなら満員。試合中は次のラウンドの始めにPCが加える（満員・優勝が決まった後は加わらない）
   else if (isFull && phase === 'lobby') message = '満員です。空きが出たら参加できます'
-  else if (isFull) message = '試合中のため参加できません。次の試合から参加できます'
+  else if (isFull && phase === 'champion') message = '試合が終わりました。次の試合から参加できます'
+  else if (isFull && players.length >= MAX_PLAYERS) message = '満員のため参加できません。次の試合を待ってね'
+  else if (isFull) message = '次のラウンドから参加！少し待ってね'
   else if (phase === 'lobby') message = LOBBY_LABEL
 
   return (

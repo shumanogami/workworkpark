@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import CharacterIcon from '../game/CharacterIcon'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
 import { displayName, isNameMessage, normalizeName, rememberNames, resolveNames } from '../lib/playerName'
-import { assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
+import { addLatecomers, assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
 import { getOrCreateRoomCode } from '../lib/room'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import {
+  addPlayers,
   afterMiniResult,
   afterResult,
   createMatch,
@@ -96,7 +97,7 @@ export default function HostPage() {
   const remembered = rememberNames(knownNames, names, presentIds)
   if (remembered !== knownNames) setKnownNames(remembered)
 
-  // 試合の参加者。スタートの時点で固定し、試合の途中では増えない（途中で抜けた人も残す）
+  // 試合の参加者。スタートの時点で決め、途中で来た人は次のラウンドの始めに加える（途中で抜けた人も残す）
   const [matchPlayers, setMatchPlayers] = useState<AssignedPlayer[]>([])
   const miniGamePlayers: MiniGamePlayer[] = matchPlayers.map((p) => ({
     ...p,
@@ -107,6 +108,12 @@ export default function HostPage() {
   // 切れた人の入力は「何も押していない」にする（最後の入力のまま走り続けないように）
   useEffect(() => {
     inputs.current.keepOnly(presentIds)
+  }, [presentIds])
+
+  // 次のラウンドへ進むときに、途中で来た人を加えるため、今つながっている人をタイマーから読めるようにしておく
+  const presentIdsRef = useRef(presentIds)
+  useEffect(() => {
+    presentIdsRef.current = presentIds
   }, [presentIds])
 
   const game = match ? findMiniGame(match.gameId) : undefined
@@ -127,7 +134,7 @@ export default function HostPage() {
             : undefined
     const payload: PhaseMessage = {
       phase,
-      // ホームでは接続中の人、試合中は試合の参加者を送る（試合の途中で来た人に番号を割り当てないため）
+      // ホームでは接続中の人、試合中は試合の参加者を送る（途中で来た人は、次のラウンドで加わるまで一覧にいない）
       players: phase === 'lobby' ? players : matchPlayers,
       ...(winnerIds ? { winnerIds } : {}),
       ...(match && game
@@ -141,16 +148,26 @@ export default function HostPage() {
   // （match.ts の関数は今の段階でなければ何もしないので、2回呼ばれても進みすぎない）
   const stage = match?.stage
   useEffect(() => {
-    if (stage !== 'miniResult' && stage !== 'result') return
+    if (!match || (stage !== 'miniResult' && stage !== 'result')) return
     const id = setTimeout(
       () => {
         inputs.current.clear() // 前のラウンドの押しっぱなしを次のラウンドに持ち越さない
-        setMatch((m) => (m ? (m.stage === 'miniResult' ? afterMiniResult(m) : afterResult(m, GAME_IDS)) : m))
+        const next = stage === 'miniResult' ? afterMiniResult(match) : afterResult(match, GAME_IDS)
+        // 次のラウンドが始まるときだけ、途中で来た人を加える（ラウンドの最中はミニゲームが参加者を変えられないため）
+        if (next.stage === 'round') {
+          const joined = addLatecomers(matchPlayers, presentIdsRef.current)
+          if (joined !== matchPlayers) {
+            setMatchPlayers(joined)
+            setMatch(addPlayers(next, joined.map((p) => p.playerId)))
+            return
+          }
+        }
+        setMatch(next)
       },
       stage === 'miniResult' ? MINI_RESULT_MS : RESULT_MS,
     )
     return () => clearTimeout(id)
-  }, [stage, match])
+  }, [stage, match, matchPlayers])
 
   const canStart = players.length >= MIN_PLAYERS
 
@@ -158,6 +175,12 @@ export default function HostPage() {
     inputs.current.clear()
     setMatchPlayers(players)
     setMatch(createMatch(players.map((p) => p.playerId), GAME_IDS))
+  }
+
+  const goHome = () => {
+    // 途中で加わった人の番号と色が、ホームに戻って変わらないよう、試合の割り当てを引き継ぐ
+    setAssigned({ ids: presentIds, players: assignPlayers(matchPlayers, presentIds) })
+    setMatch(null)
   }
 
   const nameOf = (id: string) => miniGamePlayers.find((p) => p.playerId === id)?.name ?? id
@@ -216,7 +239,7 @@ export default function HostPage() {
         <button
           className="border-4 px-8 py-3 text-2xl"
           style={{ color: colors.ui.home, borderColor: colors.ui.home }}
-          onClick={() => setMatch(null)}
+          onClick={goHome}
         >
           ホームへ戻る
         </button>
@@ -262,7 +285,7 @@ export default function HostPage() {
         ))}
       </ul>
       {waiting > 0 && <p className="text-neutral-400">満員のため {waiting} 人が待っています</p>}
-      <p className="text-neutral-400">スタートを押した時点の参加者で試合をします（試合の途中からは参加できません）</p>
+      <p className="text-neutral-400">試合の途中でも、QRを読めば次のラウンドから参加できます</p>
       <button
         className="border-4 border-white px-6 py-2 text-2xl disabled:opacity-30"
         disabled={!canStart}
