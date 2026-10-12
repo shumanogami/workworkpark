@@ -1,24 +1,37 @@
-import RoundShell, { type RoundGame, ROUND_HEIGHT, ROUND_WIDTH } from '../../platform/RoundShell'
-import type { RoundProps } from '../../platform/types'
-import { colors, fonts } from '../../theme'
+import RoundShell, { type RoundGame } from '../../platform/RoundShell'
+import type { MiniGamePlayer, RoundProps } from '../../platform/types'
+import { render, type PlayerLook } from './render'
+import { playCoin } from './sounds'
+import { type CoinState, createCoinState, step } from './step'
 
-// コイン集めの1ラウンド分の画面。いまは仮（3秒で終わり、1人目が勝つ）。本物のゲームに置き換える
-// 流れ（カウントダウン・FINISH・音・全画面）は共通の枠 RoundShell が受け持つ。見本は src/games/magma-rush/MagmaRushRound.tsx
-type State = { t: number; ids: string[] }
-
-const GAME: RoundGame<State> = {
-  create: (players) => ({ t: 0, ids: players.map((p) => p.playerId) }),
-  step: (state, _inputs, dt) => ({ ...state, t: state.t + dt }),
-  render: (ctx) => {
-    ctx.fillStyle = colors.sky.main
-    ctx.fillRect(0, 0, ROUND_WIDTH, ROUND_HEIGHT)
-    ctx.fillStyle = colors.ink.main
-    ctx.font = `24px ${fonts.dot}`
-    ctx.textAlign = 'center'
-    ctx.fillText('コイン集め（作成中）', ROUND_WIDTH / 2, ROUND_HEIGHT / 2)
+// コイン集めの1ラウンド分の画面。流れ（カウントダウン・FINISH・音・全画面）は共通の枠 RoundShell が受け持つ
+// ここでは「状態の作り方・1コマの進め方・絵・決着・鳴らす音」だけを決める
+const GAME: RoundGame<CoinState> = {
+  // コインと足場の並びはラウンドごとに変える
+  create: (players) =>
+    createCoinState(
+      players.map((p) => p.playerId),
+      Math.floor(Math.random() * 2 ** 31),
+    ),
+  step: (state, inputs, dt) => step(state, inputs, dt),
+  render: (ctx, state, players, frozen) => render(ctx, state, looksOf(players), frozen),
+  isFinished: (state) => state.finished,
+  winners: (state) => state.winners,
+  events: (prev, next) => {
+    const events: string[] = []
+    // ジャンプした瞬間
+    if (next.runners.some((r, i) => r.vy < 0 && prev.runners[i].vy >= 0 && prev.runners[i].standingOn !== null)) events.push('jump')
+    // 弾かれた瞬間
+    if (next.runners.some((r, i) => r.stunTime > 0 && prev.runners[i].stunTime === 0)) events.push('bounce')
+    // コインを取った瞬間
+    if (next.pops.some((p) => p.age === 0)) events.push('coin')
+    return events
   },
-  isFinished: (state) => state.t >= 3,
-  winners: (state) => state.ids.slice(0, 1),
+  sfx: { coin: playCoin },
+}
+
+function looksOf(players: MiniGamePlayer[]): Record<string, PlayerLook> {
+  return Object.fromEntries(players.map((p) => [p.playerId, { color: p.color, name: p.name }]))
 }
 
 export default function CoinCollectRound(props: RoundProps) {
