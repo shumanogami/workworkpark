@@ -1,8 +1,8 @@
 import type { MiniGame } from '../../platform/types'
 import PushOutRound from './PushOutRound'
 
-// おしくらまんじゅう（G6）をミニゲームとして登録するための情報。いまは作成中の仮の画面（3秒で終わる）
-// 完成するまでは src/platform/registry.ts の GAMES_IN_DEVELOPMENT に入っていて、試合のランダムには出ない。?game=push-out を付けたホスト画面と /dev/push-out で遊べる
+// おしくらまんじゅう（G6）をミニゲームとして登録するための情報
+// src/platform/registry.ts の MINI_GAMES に登録済み（試合のランダムに出る）。このゲームだけ遊ぶには、ホスト画面の URL に ?game=push-out を付ける（/dev/push-out でも遊べる）
 export const pushOut: MiniGame = {
   id: 'push-out',
   title: 'おしくらまんじゅう',
