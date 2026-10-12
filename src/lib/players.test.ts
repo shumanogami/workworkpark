@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assignPlayers, MAX_PLAYERS, PLAYER_COLORS } from './players'
+import { addLatecomers, assignPlayers, MAX_PLAYERS, PLAYER_COLORS } from './players'
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `id${i + 1}`)
 
@@ -44,5 +44,35 @@ describe('assignPlayers', () => {
   it('同じ一覧で呼び直しても結果は変わらない', () => {
     const once = assignPlayers([], ['a', 'b'])
     expect(assignPlayers(once, ['b', 'a'])).toEqual(once)
+  })
+})
+
+describe('addLatecomers', () => {
+  it('途中で来た人に、空いている一番小さい番号を割り当てて加える', () => {
+    const match = assignPlayers([], ['a', 'b', 'c'])
+    const next = addLatecomers(match, ['a', 'c', 'd'])
+    expect(next.map((p) => [p.playerId, p.number])).toEqual([
+      ['a', 1],
+      ['b', 2],
+      ['c', 3],
+      ['d', 4],
+    ])
+  })
+
+  it('切れている参加者は外さず、その番号も新しく来た人に回さない', () => {
+    const match = assignPlayers([], ['a', 'b'])
+    const next = addLatecomers(match, ['a', 'x'])
+    expect(next.find((p) => p.playerId === 'b')?.number).toBe(2)
+    expect(next.find((p) => p.playerId === 'x')?.number).toBe(3)
+  })
+
+  it('だれも来ていなければ同じ配列を返す', () => {
+    const match = assignPlayers([], ['a', 'b'])
+    expect(addLatecomers(match, ['a'])).toBe(match)
+  })
+
+  it('満員（8人）なら加えない', () => {
+    const match = assignPlayers([], ids(MAX_PLAYERS))
+    expect(addLatecomers(match, ['late'])).toBe(match)
   })
 })
