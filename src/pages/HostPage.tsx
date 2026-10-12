@@ -14,7 +14,7 @@ import {
   type MatchStage,
   type MatchState,
 } from '../platform/match'
-import { toFurigana } from '../platform/furigana'
+import Instruction from '../platform/Instruction'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
@@ -28,8 +28,6 @@ const MIN_PLAYERS = 2
 const MINI_RESULT_MS = 3000
 const RESULT_MS = 4000
 
-// ラウンドの始めに、ひと言の指示（「高く跳べ！」など）を出しておく時間。カウントダウン（3・2・1）と同じ長さ（F6 の案）
-const INSTRUCTION_MS = 3000
 
 // 開発用：URL に ?game=magma-rush を付けると、そのミニゲームだけを遊ぶ（スマホ操作で1本だけ試すため）。当てはまるものがなければ全部
 const ONLY_GAME = new URLSearchParams(location.search).get('game')
@@ -273,37 +271,5 @@ export default function HostPage() {
         スタート
       </button>
     </main>
-  )
-}
-
-// ラウンドの始めに、ひと言の指示を画面の上の方に大きく出し、決めた時間が経ったら消す（漢字にはふりがなを付ける）
-function Instruction({ text }: { text: string }) {
-  const [visible, setVisible] = useState(true)
-  useEffect(() => {
-    const id = setTimeout(() => setVisible(false), INSTRUCTION_MS)
-    return () => clearTimeout(id)
-  }, [])
-  if (!visible) return null
-  return (
-    // z-[60]：全画面のときゲーム画面（canvas）は fixed・z-50 で最前面に出るため、それより手前に出さないと指示が隠れる
-    <p
-      className="pointer-events-none absolute left-0 right-0 top-[8%] z-[60] text-center text-6xl"
-      // 明るい空の上でも読めるよう、濃紺のふちを付ける
-      style={{ color: colors.ui.start, WebkitTextStroke: `2px ${colors.ink.main}`, paintOrder: 'stroke fill' }}
-    >
-      {toFurigana(text).map((s, i) =>
-        s.reading ? (
-          <ruby key={i}>
-            {s.text}
-            {/* ふりがなは本文の半分ほどの大きさ（離れた画面からも読めるように）。ふちは本文より細くする（太いと小さな文字がつぶれるため） */}
-            <rt className="text-3xl" style={{ WebkitTextStroke: `1px ${colors.ink.main}` }}>
-              {s.reading}
-            </rt>
-          </ruby>
-        ) : (
-          <span key={i}>{s.text}</span>
-        ),
-      )}
-    </p>
   )
 }
