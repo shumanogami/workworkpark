@@ -52,6 +52,26 @@ export const VICTORY_SCORE: Score = {
   ],
 }
 
+// エントリー（ホーム）画面の BGM。みんなが集まるのを待つ、ゆったりした F → G → Em → Am の分散和音。ゲーム中より落ち着いた曲にして、始まったときに盛り上がるようにする
+export const LOBBY_SCORE: Score = {
+  melody: [
+    // F
+    81, null, 84, null, 89, null, 84, null,
+    // G
+    79, null, 83, null, 86, null, 83, null,
+    // Em
+    76, null, 79, null, 83, null, 79, null,
+    // Am
+    81, null, 84, null, 88, null, 84, 81,
+  ],
+  bass: [
+    41, null, null, null, 48, null, null, null,
+    43, null, null, null, 50, null, null, null,
+    40, null, null, null, 47, null, null, null,
+    45, null, null, null, 52, null, null, null,
+  ],
+}
+
 export type ScheduledNote = { part: 'melody' | 'bass'; note: number; time: number; duration: number }
 
 // 曲の頭からの step 番目（8分音符単位、くり返しを含む）の音を、鳴らす時刻つきで返す

@@ -51,7 +51,7 @@ export default function RoundShell<S>({ game, players, getInputs, onRoundEnd }: 
     onRoundEndRef.current = onRoundEnd
   })
 
-  const isFullscreen = useFullscreen()
+  useFullscreenKey()
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d')
@@ -137,31 +137,22 @@ export default function RoundShell<S>({ game, players, getInputs, onRoundEnd }: 
       height={ROUND_HEIGHT * ROUND_SCALE}
       // 全画面のときは 16:9 のまま画面いっぱいに、ドットをぼかさずに広げる（Jump the highest と同じ）
       className={
-        isFullscreen
-          ? 'fixed inset-0 z-50 block h-full w-full bg-black object-contain [image-rendering:pixelated]'
-          : 'block h-[540px] max-h-full w-[960px] max-w-full object-contain'
+        'fixed inset-0 z-50 block h-full w-full bg-black object-contain [image-rendering:pixelated]'
       }
     />
   )
 }
 
-// 全画面表示かどうか。F4 で全画面にする（ブラウザはキー入力の直後にしか全画面を許さないため）
-function useFullscreen(): boolean {
-  const [isFullscreen, setIsFullscreen] = useState(() => document.fullscreenElement !== null)
+// F4 で全画面にする（ブラウザはキー入力の直後にしか全画面を許さないため）。canvas は常に画面いっぱいなので、状態は持たない
+function useFullscreenKey() {
   useEffect(() => {
-    const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== FULLSCREEN_KEY || document.fullscreenElement) return
       e.preventDefault()
       // ページ全体を全画面にする（canvas だけだと、ミニリザルトへ切り替わったときに解除されるため）
       document.documentElement.requestFullscreen().catch(() => {})
     }
-    document.addEventListener('fullscreenchange', onChange)
     window.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('fullscreenchange', onChange)
-      window.removeEventListener('keydown', onKeyDown)
-    }
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
-  return isFullscreen
 }
