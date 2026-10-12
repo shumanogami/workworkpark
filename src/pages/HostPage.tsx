@@ -14,6 +14,7 @@ import {
   type MatchStage,
   type MatchState,
 } from '../platform/match'
+import Instruction from '../platform/Instruction'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
@@ -27,8 +28,6 @@ const MIN_PLAYERS = 2
 const MINI_RESULT_MS = 3000
 const RESULT_MS = 4000
 
-// ラウンドの始めに、ひと言の指示（「高く跳べ！」など）を出しておく時間。カウントダウン（3・2・1）と同じ長さ（F6 の案）
-const INSTRUCTION_MS = 3000
 
 // 開発用：URL に ?game=magma-rush を付けると、そのミニゲームだけを遊ぶ（スマホ操作で1本だけ試すため）。当てはまるものがなければ全部
 const ONLY_GAME = new URLSearchParams(location.search).get('game')
@@ -231,7 +230,7 @@ export default function HostPage() {
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
-      <h1 className="text-5xl">Jump the highest</h1>
+      <h1 className="text-5xl">WorkWorkPark</h1>
       <div className="flex flex-wrap items-center justify-center gap-6">
         {/* 白い余白（marginSize）がないと読み取れないスマホがあるため、背景を白にして余白を付ける */}
         <QRCodeSVG value={controllerUrl} size={200} marginSize={2} className="block" />
@@ -272,24 +271,5 @@ export default function HostPage() {
         スタート
       </button>
     </main>
-  )
-}
-
-// ラウンドの始めに、ひと言の指示を画面の上の方に大きく出し、決めた時間が経ったら消す
-function Instruction({ text }: { text: string }) {
-  const [visible, setVisible] = useState(true)
-  useEffect(() => {
-    const id = setTimeout(() => setVisible(false), INSTRUCTION_MS)
-    return () => clearTimeout(id)
-  }, [])
-  if (!visible) return null
-  return (
-    <p
-      className="pointer-events-none absolute left-0 right-0 top-[8%] text-center text-6xl"
-      // 明るい空の上でも読めるよう、濃紺のふちを付ける
-      style={{ color: colors.ui.start, WebkitTextStroke: `2px ${colors.ink.main}`, paintOrder: 'stroke fill' }}
-    >
-      {text}
-    </p>
   )
 }
