@@ -8,11 +8,11 @@ import type { MiniGame } from './types'
 
 // 遊べるミニゲームの一覧。新しいミニゲームを作ったら、ここに1行足す（試合の中でランダムに選ばれる候補になる）
 // 並び順に意味はない（どれを遊ぶかは match.ts がランダムに決める）
-export const MINI_GAMES: readonly MiniGame[] = [jumpTheHighest, magmaRush]
+export const MINI_GAMES: readonly MiniGame[] = [jumpTheHighest, magmaRush, cloudClimb, coinCollect, fallingItems, pushOut]
 
 // 作成中のミニゲーム。試合のランダムには出ない。ホスト画面の URL に ?game=<id> を付けたときだけ遊べる（スマホ操作で試すため）
 // 完成してOKが出たら、ここから MINI_GAMES へ移す（1行ずつ。ほかの人のゲームの行は触らない）
-export const GAMES_IN_DEVELOPMENT: readonly MiniGame[] = [cloudClimb, coinCollect, fallingItems, pushOut]
+export const GAMES_IN_DEVELOPMENT: readonly MiniGame[] = []
 
 export function findMiniGame(id: string): MiniGame | undefined {
   return [...MINI_GAMES, ...GAMES_IN_DEVELOPMENT].find((g) => g.id === id)

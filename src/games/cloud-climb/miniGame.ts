@@ -1,8 +1,8 @@
 import type { MiniGame } from '../../platform/types'
 import CloudClimbRound from './CloudClimbRound'
 
-// 雲のぼり（G2）をミニゲームとして登録するための情報。いまは作成中の仮の画面（3秒で終わる）
-// 完成するまでは src/platform/registry.ts の GAMES_IN_DEVELOPMENT に入っていて、試合のランダムには出ない。?game=cloud-climb を付けたホスト画面と /dev/cloud-climb で遊べる
+// 雲のぼり（G2）をミニゲームとして登録するための情報
+// src/platform/registry.ts の MINI_GAMES に登録済み（試合のランダムに出る）。このゲームだけ遊ぶには、ホスト画面の URL に ?game=cloud-climb を付ける（/dev/cloud-climb でも遊べる）
 export const cloudClimb: MiniGame = {
   id: 'cloud-climb',
   title: '雲のぼり',
