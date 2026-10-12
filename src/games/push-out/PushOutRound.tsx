@@ -1,24 +1,28 @@
-import RoundShell, { type RoundGame, ROUND_HEIGHT, ROUND_WIDTH } from '../../platform/RoundShell'
-import type { RoundProps } from '../../platform/types'
-import { colors, fonts } from '../../theme'
+import { playMagmaDeath } from '../../audio/sfx'
+import RoundShell, { type RoundGame } from '../../platform/RoundShell'
+import type { MiniGamePlayer, RoundProps } from '../../platform/types'
+import { type PlayerLook, render } from './render'
+import { createPushOutState, type PushOutState, step } from './step'
 
-// おしくらまんじゅうの1ラウンド分の画面。いまは仮（3秒で終わり、1人目が勝つ）。本物のゲームに置き換える
-// 流れ（カウントダウン・FINISH・音・全画面）は共通の枠 RoundShell が受け持つ。見本は src/games/magma-rush/MagmaRushRound.tsx
-type State = { t: number; ids: string[] }
-
-const GAME: RoundGame<State> = {
-  create: (players) => ({ t: 0, ids: players.map((p) => p.playerId) }),
-  step: (state, _inputs, dt) => ({ ...state, t: state.t + dt }),
-  render: (ctx) => {
-    ctx.fillStyle = colors.sky.main
-    ctx.fillRect(0, 0, ROUND_WIDTH, ROUND_HEIGHT)
-    ctx.fillStyle = colors.ink.main
-    ctx.font = `24px ${fonts.dot}`
-    ctx.textAlign = 'center'
-    ctx.fillText('おしくらまんじゅう（作成中）', ROUND_WIDTH / 2, ROUND_HEIGHT / 2)
+// おしくらまんじゅうの1ラウンド分の画面。流れ（カウントダウン・FINISH・音・全画面）は共通の枠 RoundShell が受け持つ
+const GAME: RoundGame<PushOutState> = {
+  create: (players) => createPushOutState(players.map((p) => p.playerId)),
+  step: (state, inputs, dt) => step(state, inputs, dt),
+  render: (ctx, state, players, frozen) => render(ctx, state, looksOf(players), frozen),
+  isFinished: (state) => state.finished,
+  winners: (state) => state.winners,
+  events: (prev, next) => {
+    const events: string[] = []
+    if (next.runners.some((r, i) => r.vy < 0 && prev.runners[i].vy >= 0 && prev.runners[i].standingOn !== null)) events.push('jump')
+    if (next.runners.some((r, i) => r.stunTime > 0 && prev.runners[i].stunTime === 0)) events.push('bounce')
+    if (next.survival.eliminated.length > prev.survival.eliminated.length) events.push('magma')
+    return events
   },
-  isFinished: (state) => state.t >= 3,
-  winners: (state) => state.ids.slice(0, 1),
+  sfx: { magma: playMagmaDeath },
+}
+
+function looksOf(players: MiniGamePlayer[]): Record<string, PlayerLook> {
+  return Object.fromEntries(players.map((p) => [p.playerId, { color: p.color, name: p.name }]))
 }
 
 export default function PushOutRound(props: RoundProps) {
