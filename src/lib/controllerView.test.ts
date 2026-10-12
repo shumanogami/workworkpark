@@ -11,7 +11,7 @@ const base = { players, gameTitle: 'Jump the highest', instruction: '高く跳�
 describe('controllerView（スマホに何を出すか）', () => {
   it('ホームはボタンだけ、ラウンド中はボタンとひと言の指示', () => {
     expect(controllerView({ ...base, phase: 'lobby' }, 'a')).toEqual({ kind: 'buttons' })
-    expect(controllerView({ ...base, phase: 'playing' }, 'a')).toEqual({ kind: 'buttons', instruction: '高く跳べ！' })
+    expect(controllerView({ ...base, phase: 'playing' }, 'a')).toEqual({ kind: 'buttons' })
   })
 
   it('ミニリザルト：勝った人は「勝った！」、勝ち数の段にいる', () => {

@@ -56,6 +56,7 @@ src/
     types.ts               # ミニゲームの共通の形（参加者・入力 → 勝った人の一覧、名前・ひと言の指示）
     registry.ts            # 遊べるミニゲームの一覧。新しいミニゲームはここに1行足す
     match.ts               # 試合の進行（3勝でミニゲームの勝者、階段2段で総合優勝、次のゲームをランダムに選ぶ）
+    RoundShell.tsx         # 1ラウンドの共通の枠（カウントダウン・FINISH・音・全画面・ループ）。新しいミニゲームはこれに載せる（games/magma-rush/MagmaRushRound.tsx が見本）
     MiniResult.tsx         # ミニリザルト（最大2列、信号のようなライト3つ）
     MiniResultDemoPage.tsx # 開発用（/dev/mini-result）：ミニリザルトの見た目を確認する
     stairsLayout.ts        # リザルト（階段）の並べ方（上がる前の段数、1人ずつの立つ位置）

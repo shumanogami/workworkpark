@@ -4,11 +4,11 @@ import type { PhaseMessage } from '../shared/messages'
 // スマホに何を出すかを、PCから届いた画面の状態（PhaseMessage）と自分の playerId から決める（タスク M9）
 // 画面には触らない純粋な関数（テストしやすくするため）。見た目は ControllerPage.tsx
 //
-// ホーム・ラウンド中：ボタンを出す（ラウンド中は上にひと言の指示）
+// ホーム・ラウンド中：ボタンだけを出す（コントローラーは全ゲーム共通。「生き残れ！」などのひと言はPCの画面だけに出す）
 // ラウンドの合間（ミニリザルト・リザルト・総合優勝）：ボタンは効かないので隠し、結果を大きく出す
 
 export type ControllerView =
-  | { kind: 'buttons'; instruction?: string }
+  | { kind: 'buttons' }
   | {
       kind: 'panel'
       sub: string // 名前の下の小さい文字（ゲームの名前など）
@@ -35,7 +35,7 @@ export function controllerView(msg: PhaseMessage, playerId: string): ControllerV
     case 'lobby':
       return { kind: 'buttons' }
     case 'playing':
-      return { kind: 'buttons', instruction: msg.instruction }
+      return { kind: 'buttons' }
     case 'miniResult': {
       // ラウンドに勝つたびに1段上がり、WINS_TO_CLEAR 段目に着いたらそのミニゲームの勝者
       const wins = Math.min(WINS_TO_CLEAR, msg.wins?.[playerId] ?? 0)
