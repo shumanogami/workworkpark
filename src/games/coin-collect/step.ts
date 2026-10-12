@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { carryRiders } from '../../engine/carry'
 import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { applyPickups, collectItems, createScores, type Item, type Scores } from '../../engine/score'
@@ -96,7 +97,9 @@ export function step(state: CoinState, inputs: CoinInputs, dt: number): CoinStat
     const m = moveJumper(r, inputs[r.playerId], dt, jumper)
     return { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
   })
-  const resolved = resolveJumperCollisions(state.runners, moved, collision)
+  // 頭の上に立っている人は、下の人が横に動いた分だけ一緒に運ぶ（Jump the highest と同じ）
+  const carried = carryRiders(state.runners, moved, jumper.minX, jumper.maxX)
+  const resolved = resolveJumperCollisions(state.runners, carried, collision)
   // 左の壁：壁より左にいる人は、壁の位置まで押し出す。横の速さは右向きなら残す（残さないと、壁から離れられない）
   const runners = resolved.map((r) => (r.x < left ? { ...r, x: left, vx: Math.max(r.vx, 0) } : r))
 

@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { carryRiders } from '../../engine/carry'
 import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { OBJECT_SIZE, hitRect } from '../../engine/objects'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
@@ -139,27 +140,13 @@ export function step(state: FallingState, inputs: FallingInputs, dt: number): Fa
 
   // 2. 全員を動かす（Jump the highest と同じ：頭に乗れる・横からぶつかると弾かれる）
   const platforms = [FLOOR]
-  // 頭の上に乗っている人は、下の人が横に動いた分だけ一緒に運ばれる（Jump the highest と同じ）
-  // 下にいる人から順に動かす。下の人の動いた量が先に決まっていないと、運ぶ量が分からないため（3段でも下から順に伝わる）
-  const byId = new Map(state.runners.map((r) => [r.playerId, r]))
-  const depth = (r: Runner): number => {
-    let d = 0
-    for (let cur = r; cur.standingOn && byId.has(cur.standingOn) && d < byId.size; d++) cur = byId.get(cur.standingOn)!
-    return d
-  }
-  const order = [...state.runners].sort((a, b) => depth(a) - depth(b))
-  const dxById = new Map<string, number>()
-  const movedById = new Map<string, Runner>()
-  for (const r of order) {
+  const moved = state.runners.map((r) => {
     const m = moveJumper(r, inputs[r.playerId], dt, JUMPER)
-    let n: Runner = { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
-    const carry = r.standingOn ? (dxById.get(r.standingOn) ?? 0) : 0
-    if (carry !== 0) n = { ...n, x: Math.min(Math.max(n.x + carry, JUMPER.minX), JUMPER.maxX - n.width) }
-    dxById.set(r.playerId, n.x - r.x)
-    movedById.set(r.playerId, n)
-  }
-  const moved = state.runners.map((r) => movedById.get(r.playerId)!)
-  const runners = resolveJumperCollisions(state.runners, moved, COLLISION)
+    return { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
+  })
+  // 頭の上に乗っている人は、下の人が横に動いた分だけ一緒に運ばれる（Jump the highest と同じ）
+  const carried = carryRiders(state.runners, moved, JUMPER.minX, JUMPER.maxX)
+  const runners = resolveJumperCollisions(state.runners, carried, COLLISION)
 
   // 3. 物を取る
   const { pickups } = collectItems(runners.map((r) => ({ x: r.x, y: r.y, width: r.width, height: r.height, playerId: r.playerId })), falling.map(itemRect))

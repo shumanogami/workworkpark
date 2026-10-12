@@ -137,4 +137,17 @@ describe('コイン集めの1コマ', () => {
     const s = run(createCoinState(['a'], 1), 8, () => ({ a: { ...NONE, right: true } }))
     expect(s.runners[0].x + PLAYER_SIZE).toBeGreaterThan(s.scroll.offset + STAGE_WIDTH - 5)
   })
+
+  it('頭の上に乗っている人は、下の人が横に歩くと一緒に運ばれる', () => {
+    const s0 = createCoinState(['a', 'b'], 1)
+    const a = { ...s0.runners.find((r) => r.playerId === 'a')!, x: 300 }
+    const b = s0.runners.find((r) => r.playerId === 'b')!
+    const stacked = { ...s0, runners: [a, { ...b, x: a.x, y: a.y - PLAYER_SIZE, standingOn: 'a' }] }
+    const s1 = run(stacked, 0.5, () => ({ a: { ...NONE, right: true } }))
+    const na = s1.runners.find((r) => r.playerId === 'a')!
+    const nb = s1.runners.find((r) => r.playerId === 'b')!
+    expect(na.x).toBeGreaterThan(a.x + 30) // 下の人は歩いている
+    expect(nb.x).toBeCloseTo(na.x, 0) // 上の人は何も押していないのに、同じだけ動いた
+    expect(nb.standingOn).toBe('a') // ずっと頭の上に立っている
+  })
 })

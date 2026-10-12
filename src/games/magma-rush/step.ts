@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { carryRiders } from '../../engine/carry'
 import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { createScroll, type ScrollState, stepScroll, visibleRange } from '../../engine/scroll'
@@ -109,15 +110,16 @@ export function step(state: MagmaState, inputs: MagmaInputs, dt: number): MagmaS
     const m = moveJumper(r, inputs[r.playerId], dt, JUMPER)
     return { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
   })
-  // キャラどうしの当たり判定（Jump the highest と同じ。頭に乗る・横からぶつかると弾かれる）
+  // 頭の上に立っている人は、下の人が横に動いた分だけ一緒に運ぶ。そのあとキャラどうしの当たり判定
+  // （Jump the highest と同じ。頭に乗る・横からぶつかると弾かれる）
   const aliveBefore = state.runners.filter((r) => isAlive(state.survival, r.playerId))
-  const resolved = new Map(
-    resolveJumperCollisions(
-      aliveBefore,
-      aliveBefore.map((r) => moved.find((m) => m.playerId === r.playerId)!),
-      COLLISION,
-    ).map((r) => [r.playerId, r]),
+  const carried = carryRiders(
+    aliveBefore,
+    aliveBefore.map((r) => moved.find((m) => m.playerId === r.playerId)!),
+    JUMPER.minX,
+    JUMPER.maxX,
   )
+  const resolved = new Map(resolveJumperCollisions(aliveBefore, carried, COLLISION).map((r) => [r.playerId, r]))
   const runners = moved.map((r) => {
     const landed = resolved.get(r.playerId) ?? r
     // 画面の上端より上へは行けない（画面に映らなくなるため、見えない天井で止める）
