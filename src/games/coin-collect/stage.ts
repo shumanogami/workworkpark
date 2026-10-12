@@ -74,6 +74,17 @@ const SPECS: Record<BlockKind, Spec> = {
   },
 }
 
+// 地面を歩くだけで取れるコインの、すき間を埋める（スクロールが遅く、進む距離が短いので、コインを詰めて並べる）
+const GROUND_SPACING = 32
+function fillGround(coins: Spec['coins']): Spec['coins'] {
+  const ground = coins.filter((c) => c.y === LOW)
+  const extra: Spec['coins'] = []
+  for (let x = 20; x + COIN <= BLOCK_WIDTH - 10; x += GROUND_SPACING) {
+    if (ground.every((c) => Math.abs(c.x - x) >= 28)) extra.push({ x, y: LOW })
+  }
+  return extra
+}
+
 export type StageGen = {
   seed: number // 乱数の種。同じ種なら同じ道になる（テスト・不具合の再現のため）
   nextX: number // 次のブロックを置く左端
@@ -122,7 +133,8 @@ export function extendStage(gen: StageGen, untilX: number): { gen: StageGen; pla
       const x = flip ? BLOCK_WIDTH - p.x - p.width : p.x
       platforms.push({ id: `b${g.count}-p${i}`, x: x0 + x, y: p.y, width: p.width, height: PLATFORM_HEIGHT })
     })
-    spec.coins.forEach((c, i) => {
+    const specCoins = [...spec.coins, ...fillGround(spec.coins)]
+    specCoins.forEach((c, i) => {
       const x = flip ? BLOCK_WIDTH - c.x - COIN : c.x
       coins.push(coinItem(`b${g.count}-c${i}`, x0 + x, c.y))
     })
