@@ -42,11 +42,8 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
     onFinishRef.current = onFinish
   })
 
-  // 全画面表示かどうか。全画面のときだけ canvas を画面いっぱいに広げる
-  const [isFullscreen, setIsFullscreen] = useState(() => document.fullscreenElement !== null)
+  // canvas は常に画面いっぱいに広げる。ブラウザの全画面は、スタートボタンか F4 で入る
   useEffect(() => {
-    // Esc などで全画面を抜けたときも表示を戻せるよう、ブラウザからの知らせで状態を合わせる
-    const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
     // ブラウザはキー入力やクリックの直後にしか全画面を許さないため、ゲーム画面で決まったキーが押されたときに全画面にする
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== FULLSCREEN_KEY || document.fullscreenElement) return
@@ -55,10 +52,8 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
       // 全画面が許されない環境（埋め込み表示など）では失敗するが、ゲームは続けられるので無視する
       document.documentElement.requestFullscreen().catch(() => {})
     }
-    document.addEventListener('fullscreenchange', onChange)
     window.addEventListener('keydown', onKeyDown)
     return () => {
-      document.removeEventListener('fullscreenchange', onChange)
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [])
@@ -166,9 +161,7 @@ export default function GameScreen({ players, getInputs, onFinish }: Props) {
       // 通常：これまでどおり 960×540 で表示し、ウィンドウが小さければ縮める
       //   1920×1080 を縮めて表示するので、間引きで線が欠けないよう、なめらかに縮める（pixelated にしない）
       className={
-        isFullscreen
-          ? 'fixed inset-0 z-50 block h-full w-full bg-black object-contain [image-rendering:pixelated]'
-          : 'block h-[540px] max-h-full w-[960px] max-w-full object-contain'
+        'fixed inset-0 z-50 block h-full w-full bg-black object-contain [image-rendering:pixelated]'
       }
     />
   )

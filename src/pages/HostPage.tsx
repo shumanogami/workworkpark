@@ -1,5 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
+import { startBgm, stopBgm } from '../audio/bgm'
+import { LOBBY_SCORE } from '../audio/score'
 import CharacterIcon from '../game/CharacterIcon'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
 import { displayName, isNameMessage, normalizeName, rememberNames, resolveNames } from '../lib/playerName'
@@ -169,9 +171,18 @@ export default function HostPage() {
     return () => clearTimeout(id)
   }, [stage, match, matchPlayers])
 
+  // エントリー画面の間だけ BGM を流す（ラウンドに入るとゲームの BGM に代わる）
+  useEffect(() => {
+    if (phase !== 'lobby') return
+    startBgm(LOBBY_SCORE)
+    return () => stopBgm()
+  }, [phase])
+
   const canStart = players.length >= MIN_PLAYERS
 
   const start = () => {
+    // スタートのクリックは「利用者の操作」なので、ここで全画面に入れる（ブラウザは操作の直後にしか許さない）
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {})
     inputs.current.clear()
     setMatchPlayers(players)
     setMatch(createMatch(players.map((p) => p.playerId), GAME_IDS))
@@ -187,7 +198,7 @@ export default function HostPage() {
     // ラウンドごとに作り直す（ミニゲームは1ラウンド分のことだけを考える）
     const roundKey = `${match.played.length}-${match.gameId}-${match.roundNumber}`
     return (
-      <main className="relative flex h-full items-center justify-center p-4">
+      <main className="relative flex h-full items-center justify-center">
         <game.Round
           key={roundKey}
           players={miniGamePlayers}

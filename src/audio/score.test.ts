@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { midiToFrequency } from './audio'
-import { BASS, LOOP_STEPS, MELODY, notesAtStep, STEP_SECONDS, VICTORY_SCORE } from './score'
+import { BASS, LOOP_STEPS, MELODY, notesAtStep, STEP_SECONDS, LOBBY_SCORE, VICTORY_SCORE } from './score'
 
 describe('midiToFrequency', () => {
   it('ラ（69）は 440Hz、1オクターブ上は2倍', () => {
@@ -18,6 +18,11 @@ describe('楽譜', () => {
   it('総合優勝の曲も、メロディとベースの長さがそろい小節の区切りで終わる', () => {
     expect(VICTORY_SCORE.melody).toHaveLength(VICTORY_SCORE.bass.length)
     expect(VICTORY_SCORE.melody.length % 8).toBe(0)
+  })
+
+  it('エントリー画面の曲も、メロディとベースの長さがそろい小節の区切りで終わる', () => {
+    expect(LOBBY_SCORE.melody).toHaveLength(LOBBY_SCORE.bass.length)
+    expect(LOBBY_SCORE.melody.length % 8).toBe(0)
   })
 })
 

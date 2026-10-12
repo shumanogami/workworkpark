@@ -15,7 +15,7 @@ type Props = {
 // 画面を開いてから勝者が跳ぶまでの時間。最初に「上がる前」を見せ、だれが上がるのかを分かるようにする
 const HOP_DELAY_MS = 1000
 // 跳んで次の段へ移るのにかける時間
-const HOP_MS = 600
+const HOP_MS = 700
 
 // リザルト（タスク M8）：ミニゲームの勝者が決まった後に出す。1つの階段にキャラを並べ、勝者が1段上がる
 // 並べ方の計算は stairsLayout.ts。見た目のルールは DESIGN.md の「リザルト（階段）画面」
@@ -27,9 +27,9 @@ export default function ResultStairs({ gameTitle, players, steps, gameWinners }:
   }, [])
 
   const ids = players.map((p) => p.playerId)
-  const spots = standingSpots(ids, hopped ? steps : stepsBefore(steps, gameWinners))
+  const before = standingSpots(ids, stepsBefore(steps, gameWinners))
+  const spots = hopped ? standingSpots(ids, steps) : before
   const winnerNames = players.filter((p) => gameWinners.includes(p.playerId)).map((p) => p.name)
-  const move = `left ${HOP_MS}ms ease-in-out, bottom ${HOP_MS}ms ease-in-out`
 
   return (
     // 画面いっぱいに 16:9 の舞台を置き、中の位置は舞台に対する % で決める（画面の大きさが変わっても形が崩れない）
@@ -78,6 +78,9 @@ export default function ResultStairs({ gameTitle, players, steps, gameWinners }:
         {players.map((p) => {
           const spot = spots[p.playerId]
           const hopping = hopped && gameWinners.includes(p.playerId)
+          // 跳ぶ前の位置との差（舞台の幅 1% = 1cqw 単位。縦は高さの % を幅に直すため 9/16 を掛ける）
+          const dx = before[p.playerId].left - spot.left
+          const dy = ((spot.bottom - before[p.playerId].bottom) * 9) / 16
           return (
             <div
               key={p.playerId}
@@ -86,7 +89,10 @@ export default function ResultStairs({ gameTitle, players, steps, gameWinners }:
                 left: `${spot.left}%`,
                 bottom: `${spot.bottom}%`,
                 width: `${STAIRS.characterSize}%`,
-                transition: move,
+                // 横は一定の速さで進み、縦は別の入れ物（下の div）で山なりに動かす。ひとつの動きにすると「にゅるっ」と滑って見える
+                animation: hopping ? `stairs-hop-x ${HOP_MS}ms linear 1` : undefined,
+                ['--dx' as string]: `${dx}cqw`,
+                ['--dy' as string]: `${dy}cqw`,
               }}
             >
               {/* 名前は頭上。5人以上で並ぶときは1人おきに1行上へずらす（stairsLayout.ts の nameRaised） */}
@@ -102,7 +108,7 @@ export default function ResultStairs({ gameTitle, players, steps, gameWinners }:
                 {p.name}
               </p>
               {/* flex にするのは、canvas の下にできる文字のすき間で足もとが浮かないようにするため */}
-              <div className="flex" style={{ animation: hopping ? `stairs-hop ${HOP_MS}ms ease-out 1` : undefined }}>
+              <div className="flex" style={{ animation: hopping ? `stairs-hop-y ${HOP_MS}ms linear 1` : undefined }}>
                 <CharacterIcon color={p.color} size="100%" />
               </div>
             </div>
