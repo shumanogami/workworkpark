@@ -11,8 +11,8 @@ type Props = {
   roundWinners: string[] // 今回のラウンドで勝った人（ライトが点滅する）
 }
 
-// ミニリザルト（タスク M7）：毎ラウンドの後に出す。キャラを最大2列に並べ、1人に信号のようなライトを3つ。
-// 勝つたびに1つずつ点き、3つ点いた人がそのミニゲームの勝者になる。見た目の細部は DESIGN.md の確定後に合わせる（D1）
+// ミニリザルト（タスク M7）：毎ラウンドの後に出す。キャラを最大2列に並べ、1人に信号のようなライトを2つ（WINS_TO_CLEAR の数）。
+// 勝つたびに1つずつ点き、全部点いた人がそのミニゲームの勝者になる。見た目の細部は DESIGN.md の確定後に合わせる（D1）
 export default function MiniResult({ gameTitle, roundNumber, players, wins, roundWinners }: Props) {
   const columns = columnCount(players.length)
   return (
@@ -44,7 +44,7 @@ export default function MiniResult({ gameTitle, roundNumber, players, wins, roun
   )
 }
 
-// 信号機のような横長の箱に、丸いライトを3つ並べる
+// 信号機のような横長の箱に、丸いライトを WINS_TO_CLEAR の数だけ並べる
 function Lamps({ states }: { states: LampState[] }) {
   return (
     <div

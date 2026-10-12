@@ -116,10 +116,10 @@ svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
   <text x="380" y="377" text-anchor="middle" font-size="15" font-weight="700">ミニリザルト（3秒で自動で次へ）</text>
   <text x="380" y="398" text-anchor="middle" class="small">勝った人のライトが1つ点く（最大2列）</text>
 
-  <!-- 3勝? -->
+  <!-- 2勝? -->
   <polygon class="decision" points="380,448 500,498 380,548 260,498"/>
   <text x="380" y="494" text-anchor="middle" font-size="14" font-weight="700">だれかが</text>
-  <text x="380" y="513" text-anchor="middle" font-size="14" font-weight="700">3勝した？</text>
+  <text x="380" y="513" text-anchor="middle" font-size="14" font-weight="700">2勝した？</text>
 
   <!-- リザルト（階段） -->
   <rect class="node" x="230" y="588" width="300" height="56" rx="10"/>
@@ -147,7 +147,7 @@ svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
   <line class="edge" x1="380" y1="784" x2="380" y2="822" marker-end="url(#arrow)"/>
   <text x="392" y="808" class="yes">はい</text>
 
-  <!-- 3勝していない → 次のラウンド（右側） -->
+  <!-- 2勝していない → 次のラウンド（右側） -->
   <path class="edge" d="M500,498 H650 V266 H592" marker-end="url(#arrow)"/>
   <text x="512" y="488" class="no">いいえ</text>
   <text x="660" y="380" class="small">同じミニゲームの</text>
@@ -176,7 +176,7 @@ svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
 <td>コントローラー（左・右・ジャンプ）<span class="tag fact">事実</span>。上に同じひと言の指示<span class="tag idea">案</span></td>
 <td>ミニゲームが「勝った人の一覧」を返す</td><td>M2・各ミニゲーム</td></tr>
 <tr><td>ミニリザルト</td>
-<td>キャラを<strong>最大2列</strong>に並べ、1人に<strong>信号のようなライトが3つ</strong>。今回勝った人のライトが1つ点く演出<span class="tag decided">決定</span></td>
+<td>キャラを<strong>最大2列</strong>に並べ、1人に<strong>信号のようなライトが2つ</strong>。今回勝った人のライトが1つ点く演出<span class="tag decided">決定</span></td>
 <td>「勝った！」／「次のラウンド」と、自分のライトの数<span class="tag idea">案</span></td>
 <td><strong>自動で3秒</strong><span class="tag decided">決定</span></td><td>M7・M9</td></tr>
 <tr><td>リザルト（階段）</td>
@@ -206,7 +206,7 @@ svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
 <div class="scroll"><table>
 <tr><th>場面</th><th>どうなるか</th></tr>
 <tr><td>ラウンドで複数人が勝った（引き分け）</td><td>勝った全員にライトが点く。全員が引き分けなら全員に点く</td></tr>
-<tr><td>2人以上が同時に3勝した</td><td>全員がそのミニゲームの勝者で、全員1段上がる</td></tr>
+<tr><td>2人以上が同時に2勝した</td><td>全員がそのミニゲームの勝者で、全員1段上がる</td></tr>
 <tr><td>2人以上が同時に一番上に着いた</td><td>全員が総合優勝（引き分け）</td></tr>
 <tr><td>全部のミニゲームを遊び終えても総合優勝が決まらない</td><td>もう一度全部の中からランダムに選び直す</td></tr>
 <tr><td>試合の途中の参加</td><td>できない（参加者はスタートの時点で固定）</td></tr>
@@ -244,7 +244,7 @@ svg .no { font-size: 13px; fill: var(--idea); font-weight: 700; }
 <h3 style="font-size:16px;margin:16px 0 8px">まだ決まっていないこと</h3>
 <div class="scroll"><table>
 <tr><th>#</th><th>決まっていないこと</th><th>仮の案</th></tr>
-<tr><td>F4</td><td>スマホに出す一言（「勝った！」など）</td><td><strong>決定（M9）</strong>：合間はボタンを隠し、「勝った！」「1段上がった！」「優勝！」などを大きく出す。ミニリザルトはライトの代わりに3段の小さな階段。詳細は DESIGN.md の「コントローラー」</td></tr>
+<tr><td>F4</td><td>スマホに出す一言（「勝った！」など）</td><td><strong>変更（2026-10-12）</strong>：スマホは合間も操作ボタンだけを出し、結果はPCの画面で見る。詳細は DESIGN.md の「コントローラー」</td></tr>
 <tr><td>F6</td><td>ひと言の指示を出すタイミングと場所</td><td>各ラウンドのカウントダウン（3・2・1）と一緒に PC に大きく出し、スマホの上にも出す</td></tr>
 <tr><td>F7</td><td>総合優勝の細かい見せ方（演出・キャラの見せ方・その後の流れ）</td><td>仮の演出を入れた（2026-10-12 野上の依頼。ドラムロール →「★ 優勝 ★」と名前・表彰台・紙吹雪・ファンファーレ → 優勝のBGM、3秒後に「ホームへ戻る」）。最終の要件は芦田が決める</td></tr>
 </table></div>

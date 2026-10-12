@@ -34,3 +34,13 @@ export function assignPlayers(prev: AssignedPlayer[], presentIds: string[]): Ass
 
   return [...kept, ...added].sort((a, b) => a.number - b.number)
 }
+
+// 試合の途中で来た人を、試合の参加者に加える（方針.md の「途中参加」）
+// - 試合の参加者は切れていても外さない（枠・番号・色を残す。Q4）ので、切れた人の番号も使用中として扱う
+// - 新しく来た人には、空いている一番小さい番号を割り当てる。満員（8人）なら加えない
+export function addLatecomers(matchPlayers: AssignedPlayer[], presentIds: string[]): AssignedPlayer[] {
+  const all = [...new Set([...matchPlayers.map((p) => p.playerId), ...presentIds])]
+  const next = assignPlayers(matchPlayers, all)
+  // 加わった人がいなければ同じ配列を返す（呼び出し側が「変わったか」を === で判断できるように）
+  return next.length === matchPlayers.length ? matchPlayers : next
+}

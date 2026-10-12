@@ -6,6 +6,6 @@ import CoinCollectRound from './CoinCollectRound'
 export const coinCollect: MiniGame = {
   id: 'coin-collect',
   title: 'コイン集め',
-  instruction: 'コインをあつめろ！',
+  instruction: 'コインを集めろ！',
   Round: CoinCollectRound,
 }

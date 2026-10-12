@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import CharacterIcon from '../game/CharacterIcon'
 import { InputBuffer, isInputMessage } from '../lib/inputBuffer'
 import { displayName, isNameMessage, normalizeName, rememberNames, resolveNames } from '../lib/playerName'
-import { assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
+import { addLatecomers, assignPlayers, MAX_PLAYERS, type AssignedPlayer } from '../lib/players'
 import { getOrCreateRoomCode } from '../lib/room'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import {
+  addPlayers,
   afterMiniResult,
   afterResult,
   createMatch,
@@ -15,12 +16,12 @@ import {
   type MatchState,
 } from '../platform/match'
 import ChampionScreen from '../platform/ChampionScreen'
+import Instruction from '../platform/Instruction'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
 import type { MiniGamePlayer } from '../platform/types'
 import { EVENTS, type Phase, type PhaseMessage } from '../shared/messages'
-import { colors } from '../theme'
 
 const MIN_PLAYERS = 2
 
@@ -28,8 +29,6 @@ const MIN_PLAYERS = 2
 const MINI_RESULT_MS = 3000
 const RESULT_MS = 4000
 
-// ラウンドの始めに、ひと言の指示（「高く跳べ！」など）を出しておく時間。カウントダウン（3・2・1）と同じ長さ（F6 の案）
-const INSTRUCTION_MS = 3000
 
 // 開発用：URL に ?game=magma-rush を付けると、そのミニゲームだけを遊ぶ（スマホ操作で1本だけ試すため）。当てはまるものがなければ全部
 const ONLY_GAME = new URLSearchParams(location.search).get('game')
@@ -98,7 +97,7 @@ export default function HostPage() {
   const remembered = rememberNames(knownNames, names, presentIds)
   if (remembered !== knownNames) setKnownNames(remembered)
 
-  // 試合の参加者。スタートの時点で固定し、試合の途中では増えない（途中で抜けた人も残す）
+  // 試合の参加者。スタートの時点で決め、途中で来た人は次のラウンドの始めに加える（途中で抜けた人も残す）
   const [matchPlayers, setMatchPlayers] = useState<AssignedPlayer[]>([])
   const miniGamePlayers: MiniGamePlayer[] = matchPlayers.map((p) => ({
     ...p,
@@ -109,6 +108,12 @@ export default function HostPage() {
   // 切れた人の入力は「何も押していない」にする（最後の入力のまま走り続けないように）
   useEffect(() => {
     inputs.current.keepOnly(presentIds)
+  }, [presentIds])
+
+  // 次のラウンドへ進むときに、途中で来た人を加えるため、今つながっている人をタイマーから読めるようにしておく
+  const presentIdsRef = useRef(presentIds)
+  useEffect(() => {
+    presentIdsRef.current = presentIds
   }, [presentIds])
 
   const game = match ? findMiniGame(match.gameId) : undefined
@@ -129,7 +134,7 @@ export default function HostPage() {
             : undefined
     const payload: PhaseMessage = {
       phase,
-      // ホームでは接続中の人、試合中は試合の参加者を送る（試合の途中で来た人に番号を割り当てないため）
+      // ホームでは接続中の人、試合中は試合の参加者を送る（途中で来た人は、次のラウンドで加わるまで一覧にいない）
       players: phase === 'lobby' ? players : matchPlayers,
       ...(winnerIds ? { winnerIds } : {}),
       ...(match && game
@@ -143,16 +148,26 @@ export default function HostPage() {
   // （match.ts の関数は今の段階でなければ何もしないので、2回呼ばれても進みすぎない）
   const stage = match?.stage
   useEffect(() => {
-    if (stage !== 'miniResult' && stage !== 'result') return
+    if (!match || (stage !== 'miniResult' && stage !== 'result')) return
     const id = setTimeout(
       () => {
         inputs.current.clear() // 前のラウンドの押しっぱなしを次のラウンドに持ち越さない
-        setMatch((m) => (m ? (m.stage === 'miniResult' ? afterMiniResult(m) : afterResult(m, GAME_IDS)) : m))
+        const next = stage === 'miniResult' ? afterMiniResult(match) : afterResult(match, GAME_IDS)
+        // 次のラウンドが始まるときだけ、途中で来た人を加える（ラウンドの最中はミニゲームが参加者を変えられないため）
+        if (next.stage === 'round') {
+          const joined = addLatecomers(matchPlayers, presentIdsRef.current)
+          if (joined !== matchPlayers) {
+            setMatchPlayers(joined)
+            setMatch(addPlayers(next, joined.map((p) => p.playerId)))
+            return
+          }
+        }
+        setMatch(next)
       },
       stage === 'miniResult' ? MINI_RESULT_MS : RESULT_MS,
     )
     return () => clearTimeout(id)
-  }, [stage, match])
+  }, [stage, match, matchPlayers])
 
   const canStart = players.length >= MIN_PLAYERS
 
@@ -160,6 +175,12 @@ export default function HostPage() {
     inputs.current.clear()
     setMatchPlayers(players)
     setMatch(createMatch(players.map((p) => p.playerId), GAME_IDS))
+  }
+
+  const goHome = () => {
+    // 途中で加わった人の番号と色が、ホームに戻って変わらないよう、試合の割り当てを引き継ぐ
+    setAssigned({ ids: presentIds, players: assignPlayers(matchPlayers, presentIds) })
+    setMatch(null)
   }
 
   if (match && match.stage === 'round' && game) {
@@ -203,7 +224,7 @@ export default function HostPage() {
 
   if (match && match.stage === 'champion') {
     // 総合優勝：ドラムロール → 発表（ファンファーレ・紙吹雪・表彰台）→ ホームへ戻る（F7）
-    return <ChampionScreen players={miniGamePlayers} champions={match.champions} onHome={() => setMatch(null)} />
+    return <ChampionScreen players={miniGamePlayers} champions={match.champions} onHome={goHome} />
   }
 
   const controllerUrl = `${location.origin}/controller?room=${roomCode}`
@@ -212,7 +233,7 @@ export default function HostPage() {
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
-      <h1 className="text-5xl">Jump the highest</h1>
+      <h1 className="text-5xl">WorkWorkPark</h1>
       <div className="flex flex-wrap items-center justify-center gap-6">
         {/* 白い余白（marginSize）がないと読み取れないスマホがあるため、背景を白にして余白を付ける */}
         <QRCodeSVG value={controllerUrl} size={200} marginSize={2} className="block" />
@@ -244,7 +265,7 @@ export default function HostPage() {
         ))}
       </ul>
       {waiting > 0 && <p className="text-neutral-400">満員のため {waiting} 人が待っています</p>}
-      <p className="text-neutral-400">スタートを押した時点の参加者で試合をします（試合の途中からは参加できません）</p>
+      <p className="text-neutral-400">試合の途中でも、QRを読めば次のラウンドから参加できます</p>
       <button
         className="border-4 border-white px-6 py-2 text-2xl disabled:opacity-30"
         disabled={!canStart}
@@ -253,24 +274,5 @@ export default function HostPage() {
         スタート
       </button>
     </main>
-  )
-}
-
-// ラウンドの始めに、ひと言の指示を画面の上の方に大きく出し、決めた時間が経ったら消す
-function Instruction({ text }: { text: string }) {
-  const [visible, setVisible] = useState(true)
-  useEffect(() => {
-    const id = setTimeout(() => setVisible(false), INSTRUCTION_MS)
-    return () => clearTimeout(id)
-  }, [])
-  if (!visible) return null
-  return (
-    <p
-      className="pointer-events-none absolute left-0 right-0 top-[8%] text-center text-6xl"
-      // 明るい空の上でも読めるよう、濃紺のふちを付ける
-      style={{ color: colors.ui.start, WebkitTextStroke: `2px ${colors.ink.main}`, paintOrder: 'stroke fill' }}
-    >
-      {text}
-    </p>
   )
 }

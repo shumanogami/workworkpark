@@ -1,12 +1,12 @@
 // 試合の進行。何勝したか・何段目か・次にどのミニゲームを遊ぶかを決める
 // 画面・通信・音には触らない純粋な関数（テストしやすくするため）。ルールの正は docs/方針.md
 //
-// 流れ：ラウンド → ミニリザルト → （だれかが3勝したら）リザルト（階段）→ （だれかが一番上なら）総合優勝
+// 流れ：ラウンド → ミニリザルト → （だれかが2勝したら）リザルト（階段）→ （だれかが一番上なら）総合優勝
 //   createMatch で始め、ラウンドが終わったら finishRound、ミニリザルトが終わったら afterMiniResult、
 //   リザルトが終わったら afterResult を呼ぶ。今どの画面かは stage を見る
 
 // そのミニゲームの勝者になるのに必要なラウンドの勝ち数
-export const WINS_TO_CLEAR = 3
+export const WINS_TO_CLEAR = 2
 
 // 総合優勝に必要な段数（階段の高さ）
 export const STEPS_TO_WIN = 2
@@ -16,7 +16,7 @@ export type MatchStage = 'round' | 'miniResult' | 'result' | 'champion'
 
 export type MatchState = {
   stage: MatchStage
-  players: string[] // 参加者（試合の始めに固定。途中で増えない）
+  players: string[] // 参加者（試合の始めに決め、途中で来た人は addPlayers で加える。抜けた人も残す）
   gameId: string // 今遊んでいるミニゲーム
   played: string[] // 今の一巡で遊んだミニゲーム（全部遊ぶまで同じゲームを選ばないため）
   roundNumber: number // 今のミニゲームの何ラウンド目か（1から）
@@ -69,6 +69,21 @@ export function createMatch(players: string[], gameIds: readonly string[], rando
   }
 }
 
+// 試合の途中で来た人を加える。勝ち数も段数も0から始める（方針.md の「途中参加」）
+// ラウンドの最中はミニゲームが参加者を最初に決めてしまうので加えない（次のラウンドの始めに呼ぶ）
+// すでにいる人は二重に加えない。加わる人がいなければ同じ state を返す
+export function addPlayers(state: MatchState, ids: string[]): MatchState {
+  if (state.stage === 'champion') return state
+  const added = [...new Set(ids)].filter((id) => !state.players.includes(id))
+  if (added.length === 0) return state
+  return {
+    ...state,
+    players: [...state.players, ...added],
+    wins: { ...state.wins, ...zeros(added) },
+    steps: { ...state.steps, ...zeros(added) },
+  }
+}
+
 // ラウンドが終わった。勝った人のライトを1つずつ点けて、ミニリザルトへ
 // 引き分けなら勝った全員、全員引き分け（ミニゲームが全員を返す）なら全員に点く（方針.md の Q1）
 // 参加者でない id は無視する。だれも勝っていなければ、だれのライトも点かない
@@ -81,7 +96,7 @@ export function finishRound(state: MatchState, winnerIds: string[]): MatchState 
 }
 
 // ミニリザルトが終わった
-// - だれかが3勝していたら、その人たち（同時なら全員。Q2）がミニゲームの勝者。1段上がってリザルトへ
+// - だれかが2勝していたら、その人たち（同時なら全員。Q2）がミニゲームの勝者。1段上がってリザルトへ
 // - まだなら、同じミニゲームの次のラウンドへ
 export function afterMiniResult(state: MatchState): MatchState {
   if (state.stage !== 'miniResult') return state

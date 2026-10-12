@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DEV_KEY_BINDINGS, useKeyboardInputs } from '../game/keyboard'
 import { colors, playerColors } from '../theme'
+import Instruction from './Instruction'
 import type { MiniGame, MiniGamePlayer } from './types'
 
 // 開発用：通信・試合の流れなしで、ミニゲーム1本の1ラウンドだけを、キーボードで遊ぶ共通のページ（各ゲームの /dev/<ゲーム名> が使う）
@@ -30,6 +31,8 @@ export default function DevRoundPage({ game, hint }: { game: MiniGame; hint?: st
     <main className="flex h-full flex-col items-center justify-center gap-3 p-4">
       <div className="relative">
         <Round key={`${round}-${count}`} players={players} getInputs={getInputs} onRoundEnd={setWinners} />
+        {/* 本番の試合と同じひと言の指示（カウントダウンの間だけ出る） */}
+        <Instruction key={`instruction-${round}-${count}`} text={game.instruction} />
         {winners && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60">
             <p className="text-6xl" style={{ color: colors.ui.text }}>

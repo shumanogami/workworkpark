@@ -15,9 +15,9 @@ const players = [
 const base = { players, gameTitle: 'Jump the highest', instruction: '高く跳べ！' }
 
 const SCENES: [string, PhaseMessage][] = [
-  ['ミニリザルト：勝った', { ...base, phase: 'miniResult', winnerIds: ['p1'], wins: { p1: 2, p3: 1 } }],
-  ['ミニリザルト：勝てなかった', { ...base, phase: 'miniResult', winnerIds: ['p3'], wins: { p1: 1, p3: 2 } }],
-  ['ミニリザルト：3勝した', { ...base, phase: 'miniResult', winnerIds: ['p1'], wins: { p1: 3 } }],
+  ['ミニリザルト：勝った', { ...base, phase: 'miniResult', winnerIds: ['p1'], wins: { p1: 1, p3: 0 } }],
+  ['ミニリザルト：勝てなかった', { ...base, phase: 'miniResult', winnerIds: ['p3'], wins: { p1: 0, p3: 1 } }],
+  ['ミニリザルト：2勝した', { ...base, phase: 'miniResult', winnerIds: ['p1'], wins: { p1: 2 } }],
   ['リザルト：1段上がった', { ...base, phase: 'result', winnerIds: ['p1'], steps: { p1: 1 } }],
   ['リザルト：上がれなかった', { ...base, phase: 'result', winnerIds: ['p3'], steps: { p1: 0, p3: 1 } }],
   ['総合優勝：優勝した', { ...base, phase: 'champion', winnerIds: ['p1'] }],

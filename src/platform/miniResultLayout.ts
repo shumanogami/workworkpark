@@ -12,7 +12,7 @@ export function columnCount(playerCount: number): 1 | 2 {
 // 1人分のライトの状態。on：前から点いている、new：今回点いた（点滅させる）、off：まだ点いていない
 export type LampState = 'on' | 'new' | 'off'
 
-// 勝ち数と、今回勝ったかから、3つのライトの状態を左から順に返す
+// 勝ち数と、今回勝ったかから、ライト（WINS_TO_CLEAR の数）の状態を左から順に返す
 export function lampStates(wins: number, wonThisRound: boolean): LampState[] {
   return Array.from({ length: WINS_TO_CLEAR }, (_, i) => {
     if (i >= wins) return 'off'
