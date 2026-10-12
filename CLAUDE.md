@@ -56,6 +56,7 @@ src/
     types.ts               # ミニゲームの共通の形（参加者・入力 → 勝った人の一覧、名前・ひと言の指示）
     registry.ts            # 遊べるミニゲームの一覧。新しいミニゲームはここに1行足す
     match.ts               # 試合の進行（3勝でミニゲームの勝者、階段2段で総合優勝、次のゲームをランダムに選ぶ）
+    RoundShell.tsx         # 1ラウンドの共通の枠（カウントダウン・FINISH・音・全画面・ループ）。新しいミニゲームはこれに載せる（games/magma-rush/MagmaRushRound.tsx が見本）
     MiniResult.tsx         # ミニリザルト（最大2列、信号のようなライト3つ）
     MiniResultDemoPage.tsx # 開発用（/dev/mini-result）：ミニリザルトの見た目を確認する
     stairsLayout.ts        # リザルト（階段）の並べ方（上がる前の段数、1人ずつの立つ位置）
@@ -84,11 +85,15 @@ src/
     inputBuffer.ts         # PC：届いた入力を保持し、1コマごとに取り出す（短いジャンプの予約もここ）
     judge.ts               # 勝敗判定（終了した瞬間の高さ、同じ高さは引き分け）
     controllerView.ts      # スマホに何を出すか（ボタン／ひと言の指示／「勝った！」と階段）を画面の状態から決める
+  games/                   # ミニゲーム（1本＝1フォルダ＝1担当。ほかの人のフォルダは触らない）
+    magma-rush/            # マグマラッシュ（G3、野上）。仕様.md・開発用ページ（/dev/magma-rush）つき
   engine/                  # 複数のゲームで使い回す部品（特定のゲームの物理・描画に依存しない）
+    jumper.ts              # キャラの物理（重力・左右移動・ジャンプ・壁）
     scroll.ts              # 横・縦スクロール（時間とともに速くなり最高速度で頭打ち、ワールド座標→画面座標）
     ScrollDemoPage.tsx     # 開発用（/dev/scroll）：スクロールの動きを確認する
     platforms.ts           # 足場（下からすり抜け、上から乗れる雲など）に乗る・運ばれる・降りる処理
     PlatformDemoPage.tsx   # 開発用（/dev/platforms）：足場の動きを確認する（見た目は仮）
+    jumperCollisions.ts    # キャラどうしの当たり判定（頭に乗る・横から弾く。Jump the highest と同じ。下向きが正）
     rect.ts                # 当たり判定の長方形（重なり・中心）。部品どうしで共通
     score.ts               # ポイント：アイテムを取ると加点・減点（0 未満にはならない）
     survival.ts            # 脱落（危険物・画面外）と、最後まで生き残った人が勝ちの判定・順位

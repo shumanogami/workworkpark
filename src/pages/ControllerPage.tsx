@@ -7,12 +7,10 @@ import { getOrCreatePlayerId, normalizeRoomCode } from '../lib/room'
 import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import { EVENTS, type NameMessage, type PhaseMessage, type PlayerInfo } from '../shared/messages'
-import { colors } from '../theme'
 import ControllerPanel from './ControllerPanel'
 
 // ボタンを出している間の、名前の下の小さい文字。ラウンドの合間は ControllerPanel に結果を大きく出す（M9）
 const LOBBY_LABEL = 'PCの画面でスタートを待ってね'
-const PLAYING_LABEL = 'ゲーム中！' // ひと言の指示が届いていないときだけ使う
 
 // スマホ側のコントローラー画面。ラフ画どおり、上に自分の番号（自分の色）、左に ←→、右にジャンプ
 export default function ControllerPage() {
@@ -62,7 +60,6 @@ export default function ControllerPage() {
   else if (isFull && phase === 'lobby') message = '満員です。空きが出たら参加できます'
   else if (isFull) message = '試合中のため参加できません。次の試合から参加できます'
   else if (phase === 'lobby') message = LOBBY_LABEL
-  else if (phase === 'playing' && !phaseMsg.instruction) message = PLAYING_LABEL
 
   return (
     <main className="relative flex h-full touch-none select-none flex-col items-center justify-between overflow-hidden p-4">
@@ -86,17 +83,7 @@ export default function ControllerPage() {
         ) : (
           <p className="text-5xl text-neutral-400">--</p>
         )}
-        {message ? (
-          <p className="text-sm text-neutral-400">{message}</p>
-        ) : (
-          view.kind === 'buttons' &&
-          view.instruction && (
-            // ラウンド中は、PCと同じひと言の指示（「高く跳べ！」など）を出す
-            <p className="text-2xl" style={{ color: colors.ui.start }}>
-              {view.instruction}
-            </p>
-          )
-        )}
+        {message && <p className="text-sm text-neutral-400">{message}</p>}
       </div>
 
       {view.kind === 'panel' && !message && me ? (
