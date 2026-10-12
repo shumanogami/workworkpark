@@ -45,3 +45,24 @@ describe('step', () => {
     expect(s2.runners.find((r) => r.playerId === 'b')!.x).toBe(a1.x)
   })
 })
+
+describe('頭の上に乗った人', () => {
+  it('下の人が横へ動くと、上の人も一緒に運ばれる', () => {
+    let s = createPushOutState(['a', 'b'])
+    const [a, b] = s.runners
+    // b を a の頭の上に立たせる（a が下）
+    s = {
+      ...s,
+      runners: [
+        { ...a, x: 400 },
+        { ...b, x: 400, y: a.y - a.height, standingOn: 'a' },
+      ],
+    }
+    const bx0 = s.runners[1].x
+    for (let i = 0; i < 30; i++) s = step(s, { a: { left: false, right: true, jump: false } }, DT)
+    const [a1, b1] = s.runners
+    expect(a1.x).toBeGreaterThan(400)
+    expect(b1.x - bx0).toBeCloseTo(a1.x - 400, 0) // 同じだけ運ばれた
+    expect(b1.standingOn).toBe('a') // 乗ったまま
+  })
+})
