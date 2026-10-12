@@ -72,6 +72,12 @@ npm run lint    # lint（oxlint）
 - 公開サイトなので、ほかのグループが同じコードを使うと同じ部屋に混ざる。思いつきにくいコードにする
 - 同じブラウザで PC 画面を2つ開くと、2つとも同じ部屋になるので注意
 
+### 本番の投影（ルーム PARK）
+
+- 投影するPCは、最初に一度 https://workworkpark.vercel.app/?room=PARK を開く（以降はそのPCに保存される）
+- 参加用のQRは、iPadで https://workworkpark.vercel.app/ipad-qr.html を開いて出しっぱなしにする（印刷不要）。QRの中身は `/controller?room=PARK`
+- ルームコードを変えるときは `public/ipad-qr.html` のQRと文字を作り直す
+
 ## トラブルシューティング
 
 | 症状 | 原因と対処 |
