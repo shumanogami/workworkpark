@@ -231,7 +231,7 @@ export default function HostPage() {
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-6 p-4">
-      <h1 className="text-5xl">Jump the highest</h1>
+      <h1 className="text-5xl">WorkWorkPark</h1>
       <div className="flex flex-wrap items-center justify-center gap-6">
         {/* 白い余白（marginSize）がないと読み取れないスマホがあるため、背景を白にして余白を付ける */}
         <QRCodeSVG value={controllerUrl} size={200} marginSize={2} className="block" />
@@ -284,8 +284,9 @@ function Instruction({ text }: { text: string }) {
   }, [])
   if (!visible) return null
   return (
+    // z-[60]：全画面のときゲーム画面（canvas）は fixed・z-50 で最前面に出るため、それより手前に出さないと指示が隠れる
     <p
-      className="pointer-events-none absolute left-0 right-0 top-[8%] text-center text-6xl"
+      className="pointer-events-none absolute left-0 right-0 top-[8%] z-[60] text-center text-6xl"
       // 明るい空の上でも読めるよう、濃紺のふちを付ける
       style={{ color: colors.ui.start, WebkitTextStroke: `2px ${colors.ink.main}`, paintOrder: 'stroke fill' }}
     >
