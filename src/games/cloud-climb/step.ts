@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { carryRiders } from '../../engine/carry'
 import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { createScroll, type ScrollState, stepScroll, toScreen, visibleRange } from '../../engine/scroll'
@@ -10,7 +11,7 @@ import { createStage, extendStage, type StageGen } from './stage'
 // 雲のぼりの1コマを進める純粋な関数（React・Canvas・通信には触らない）
 // 1. 縦スクロールを進める（カメラが上がる）
 // 2. 画面の少し上まで雲を足す
-// 3. 生きている人だけを動かす（キャラの物理 → 雲に乗る → キャラどうしの当たり判定 → 画面の上端で止める）
+// 3. 生きている人だけを動かす（キャラの物理 → 雲に乗る → 頭の上の人を運ぶ → キャラどうしの当たり判定 → 画面の上端で止める）
 // 4. 雷・鳥を進める（出す・消す）
 // 5. 画面の下に置いていかれた人、雷・鳥に当たった人を脱落させる
 // 6. 最後の1人になったら終わり
@@ -72,13 +73,14 @@ export function step(state: CloudState, inputs: CloudInputs, dt: number): CloudS
     return { ...m, ...updateOnPlatforms(c, m, platforms, platforms) }
   })
   const aliveBefore = state.climbers.filter((c) => isAlive(state.survival, c.playerId))
-  const resolved = new Map(
-    resolveJumperCollisions(
-      aliveBefore,
-      aliveBefore.map((c) => moved.find((m) => m.playerId === c.playerId)!),
-      COLLISION,
-    ).map((c) => [c.playerId, c]),
+  // 頭の上に立っている人は、下の人が横に動いた分だけ一緒に運ぶ（Jump the highest と同じ）
+  const carried = carryRiders(
+    aliveBefore,
+    aliveBefore.map((c) => moved.find((m) => m.playerId === c.playerId)!),
+    JUMPER.minX,
+    JUMPER.maxX,
   )
+  const resolved = new Map(resolveJumperCollisions(aliveBefore, carried, COLLISION).map((c) => [c.playerId, c]))
   const climbers = moved.map((c) => {
     const landed = resolved.get(c.playerId) ?? c
     // 画面の上端より上へは行けない（見えない天井で止める）

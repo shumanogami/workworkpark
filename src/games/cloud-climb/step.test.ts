@@ -56,4 +56,15 @@ describe('雲のぼりの1コマ', () => {
     const s1 = run(s0, 1, () => ({ [out]: { left: true, right: false, jump: true } }))
     expect(s1.climbers.find((c) => c.playerId === out)!.x).toBe(before.x)
   })
+
+  it('頭の上に乗っている人は、下の人が横に歩くと一緒に運ばれる', () => {
+    const s0 = createCloudState(['a', 'b'], 1)
+    const [a, b] = s0.climbers
+    const stacked = { ...s0, climbers: [a, { ...b, x: a.x, y: a.y - PLAYER_SIZE, standingOn: 'a' }] }
+    const s1 = run(stacked, 0.5, () => ({ a: { left: false, right: true, jump: false } }))
+    const [na, nb] = s1.climbers
+    expect(na.x).toBeGreaterThan(a.x + 30) // 下の人は歩いている
+    expect(nb.x).toBeCloseTo(na.x, 0) // 上の人は何も押していないのに、同じだけ動いた
+    expect(nb.standingOn).toBe('a') // ずっと頭の上に立っている
+  })
 })
