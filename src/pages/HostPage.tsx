@@ -16,7 +16,7 @@ import {
 } from '../platform/match'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
-import { findMiniGame, MINI_GAMES } from '../platform/registry'
+import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
 import type { MiniGamePlayer } from '../platform/types'
 import { EVENTS, type Phase, type PhaseMessage } from '../shared/messages'
 import { colors } from '../theme'
@@ -32,7 +32,8 @@ const INSTRUCTION_MS = 3000
 
 // 開発用：URL に ?game=magma-rush を付けると、そのミニゲームだけを遊ぶ（スマホ操作で1本だけ試すため）。当てはまるものがなければ全部
 const ONLY_GAME = new URLSearchParams(location.search).get('game')
-const GAME_IDS = MINI_GAMES.filter((g) => !ONLY_GAME || g.id === ONLY_GAME).map((g) => g.id)
+// 作成中のゲーム（GAMES_IN_DEVELOPMENT）も、?game= で指定したときだけ遊べる
+const GAME_IDS = [...MINI_GAMES, ...GAMES_IN_DEVELOPMENT].filter((g) => ONLY_GAME && g.id === ONLY_GAME).map((g) => g.id)
 if (GAME_IDS.length === 0) GAME_IDS.push(...MINI_GAMES.map((g) => g.id))
 
 // 試合の段階（match.ts）を、スマホへ送る画面の状態（messages.ts の Phase）に変える

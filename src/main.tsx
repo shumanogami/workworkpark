@@ -8,6 +8,10 @@ import SurvivalDemoPage from './engine/SurvivalDemoPage.tsx'
 import MiniResultDemoPage from './platform/MiniResultDemoPage.tsx'
 import ResultDemoPage from './platform/ResultDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
+import DevCloudClimbPage from './games/cloud-climb/DevCloudClimbPage.tsx'
+import DevCoinCollectPage from './games/coin-collect/DevCoinCollectPage.tsx'
+import DevFallingItemsPage from './games/falling-items/DevFallingItemsPage.tsx'
+import DevPushOutPage from './games/push-out/DevPushOutPage.tsx'
 import ObjectsDemoPage from './engine/ObjectsDemoPage.tsx'
 import DevMagmaRushPage from './games/magma-rush/DevMagmaRushPage.tsx'
 import './index.css'
@@ -42,6 +46,11 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dev/magma-rush" element={<DevMagmaRushPage />} />
         {/* 開発用：ミニゲームの物（コイン・毒キノコ・鳥・雷）の見本帳 */}
         <Route path="/dev/objects" element={<ObjectsDemoPage />} />
+        {/* 開発用：作成中のミニゲーム（各ゲームを1本だけ、キーボードで遊ぶ） */}
+        <Route path="/dev/cloud-climb" element={<DevCloudClimbPage />} />
+        <Route path="/dev/coin-collect" element={<DevCoinCollectPage />} />
+        <Route path="/dev/falling-items" element={<DevFallingItemsPage />} />
+        <Route path="/dev/push-out" element={<DevPushOutPage />} />
         {/* 開発用：スマホのラウンドの合間の表示（勝った・勝てなかった）を確認する */}
         <Route path="/dev/controller" element={<ControllerDemoPage />} />
       </Routes>

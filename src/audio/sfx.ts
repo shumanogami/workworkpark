@@ -11,7 +11,8 @@ type Tone = {
   volume?: number
 }
 
-function playTone({ type, from, to, start = 0, duration, volume = 0.5 }: Tone) {
+// ゲームごとの効果音をそのゲームのフォルダで作れるよう、部品の playTone（音程のある音）と playNoise（ザーッという音）は公開している
+export function playTone({ type, from, to, start = 0, duration, volume = 0.5 }: Tone) {
   const audio = getAudio()
   if (!audio) return
   const { ctx, out } = audio
@@ -38,7 +39,7 @@ type Noise = {
 }
 
 // ザーッというノイズ（雑音）を、指定の高さの帯だけ通して鳴らす。「ジュッ」「シュワッ」のような音に使う
-function playNoise({ from, to, start = 0, duration, volume = 0.4 }: Noise) {
+export function playNoise({ from, to, start = 0, duration, volume = 0.4 }: Noise) {
   const audio = getAudio()
   if (!audio) return
   const { ctx, out } = audio
