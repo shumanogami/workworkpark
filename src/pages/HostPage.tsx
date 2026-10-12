@@ -49,7 +49,8 @@ const PHASE_OF_STAGE: Record<MatchStage, Phase> = {
 // PC側の画面。ホーム → ラウンド → ミニリザルト → リザルト（階段）→ … → 総合優勝 を切り替える（流れは docs/画面遷移図.html）
 // 何勝したか・何段目か・次に遊ぶミニゲームは、試合の進行（src/platform/match.ts）が決める
 export default function HostPage() {
-  const [roomCode] = useState(getOrCreateRoomCode)
+  // URL で ?room=WORK のように指定すると、そのコードの部屋にする（QRを印刷して貼っておくとき）。指定がなければ、このPCに保存したコード
+  const [roomCode] = useState(() => getOrCreateRoomCode(new URLSearchParams(location.search).get('room')))
   // 試合の進行。ホームにいる間は null
   const [match, setMatch] = useState<MatchState | null>(null)
 
