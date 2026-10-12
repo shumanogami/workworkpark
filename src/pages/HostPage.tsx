@@ -15,13 +15,13 @@ import {
   type MatchStage,
   type MatchState,
 } from '../platform/match'
+import ChampionScreen from '../platform/ChampionScreen'
 import Instruction from '../platform/Instruction'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
 import type { MiniGamePlayer } from '../platform/types'
 import { EVENTS, type Phase, type PhaseMessage } from '../shared/messages'
-import { colors } from '../theme'
 
 const MIN_PLAYERS = 2
 
@@ -183,8 +183,6 @@ export default function HostPage() {
     setMatch(null)
   }
 
-  const nameOf = (id: string) => miniGamePlayers.find((p) => p.playerId === id)?.name ?? id
-
   if (match && match.stage === 'round' && game) {
     // ラウンドごとに作り直す（ミニゲームは1ラウンド分のことだけを考える）
     const roundKey = `${match.played.length}-${match.gameId}-${match.roundNumber}`
@@ -225,26 +223,8 @@ export default function HostPage() {
   }
 
   if (match && match.stage === 'champion') {
-    // 総合優勝：「勝者 ○○」と簡単に表示する（細かい見せ方は後で決める。F7）
-    return (
-      <main className="flex h-full flex-col items-center justify-center gap-8 p-4">
-        <h1 className="text-7xl">勝者 {match.champions.map(nameOf).join('・')}</h1>
-        <div className="flex flex-wrap items-end justify-center gap-8">
-          {miniGamePlayers
-            .filter((p) => match.champions.includes(p.playerId))
-            .map((p) => (
-              <CharacterIcon key={p.playerId} color={p.color} size={match.champions.length === 1 ? 200 : 120} />
-            ))}
-        </div>
-        <button
-          className="border-4 px-8 py-3 text-2xl"
-          style={{ color: colors.ui.home, borderColor: colors.ui.home }}
-          onClick={goHome}
-        >
-          ホームへ戻る
-        </button>
-      </main>
-    )
+    // 総合優勝：ドラムロール → 発表（ファンファーレ・紙吹雪・表彰台）→ ホームへ戻る（F7）
+    return <ChampionScreen players={miniGamePlayers} champions={match.champions} onHome={goHome} />
   }
 
   const controllerUrl = `${location.origin}/controller?room=${roomCode}`

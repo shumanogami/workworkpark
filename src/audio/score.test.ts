@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { midiToFrequency } from './audio'
-import { BASS, LOOP_STEPS, MELODY, notesAtStep, STEP_SECONDS } from './score'
+import { BASS, LOOP_STEPS, MELODY, notesAtStep, STEP_SECONDS, VICTORY_SCORE } from './score'
 
 describe('midiToFrequency', () => {
   it('ラ（69）は 440Hz、1オクターブ上は2倍', () => {
@@ -13,6 +13,11 @@ describe('楽譜', () => {
   it('メロディとベースの長さがそろっている（くり返しでずれない）', () => {
     expect(MELODY).toHaveLength(BASS.length)
     expect(LOOP_STEPS % 8).toBe(0) // 小節（8分音符8つ）の区切りで終わる
+  })
+
+  it('総合優勝の曲も、メロディとベースの長さがそろい小節の区切りで終わる', () => {
+    expect(VICTORY_SCORE.melody).toHaveLength(VICTORY_SCORE.bass.length)
+    expect(VICTORY_SCORE.melody.length % 8).toBe(0)
   })
 })
 
@@ -31,5 +36,11 @@ describe('notesAtStep', () => {
   it('休み（null）の位置では、そのパートの音を返さない', () => {
     const restIndex = BASS.findIndex((n) => n === null)
     expect(notesAtStep(restIndex, 0).some((n) => n.part === 'bass')).toBe(false)
+  })
+
+  it('楽譜を渡すとその曲の音を返し、その曲の長さでくり返す', () => {
+    const len = VICTORY_SCORE.melody.length
+    expect(notesAtStep(0, 0, VICTORY_SCORE).find((n) => n.part === 'melody')?.note).toBe(VICTORY_SCORE.melody[0])
+    expect(notesAtStep(len, 0, VICTORY_SCORE).map((n) => n.note)).toEqual(notesAtStep(0, 0, VICTORY_SCORE).map((n) => n.note))
   })
 })

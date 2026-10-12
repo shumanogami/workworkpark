@@ -29,3 +29,30 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* 総合優勝：紙吹雪が上から下へ落ちる（ChampionScreen が steps() でコマ送りにする） */
+@keyframes confetti-fall {
+  from { transform: translate(0, 0); }
+  25% { transform: translate(0.6cqw, 28cqw); }
+  50% { transform: translate(0, 56cqw); }
+  75% { transform: translate(-0.6cqw, 84cqw); }
+  to { transform: translate(0, 112cqw); }
+}
+
+/* 総合優勝：キャラがその場で跳ねる（ChampionScreen が steps() でコマ送りにする） */
+@keyframes champion-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30%); }
+}
+
+/* 総合優勝：発表前に、地面のキャラがそわそわと小さく上下する */
+@keyframes champion-fidget {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8%); }
+}
+
+/* 総合優勝：「★ 優勝 ★」や「…」を点く・消えるで点滅させる */
+@keyframes champion-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
