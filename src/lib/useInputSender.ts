@@ -34,8 +34,8 @@ export function useInputSender(channel: RealtimeChannel | null, playerId: string
     return () => clearInterval(id)
   }, [playing, send])
 
-  // ラウンドが終わると、スマホはボタンを隠して結果を出す（M9）。押したまま隠れると「離した」が来ないため、
-  // 全部離したことにする（そうしないと次のラウンドの始めに、押しっぱなしの状態が送り直されて勝手に動く）
+  // ラウンドが終わったら全部離したことにする（ラウンドをまたいで押しっぱなしだと、
+  // 次のラウンドの始めにその状態が送り直されて勝手に動くため）
   useEffect(() => {
     if (!playing) buttons.current = { left: false, right: false, jump: false }
   }, [playing])

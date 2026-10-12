@@ -1,15 +1,13 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import { playDecide } from '../audio/sfx'
-import { controllerView } from '../lib/controllerView'
 import { displayName, limitName, loadName, normalizeName, saveName } from '../lib/playerName'
 import { useSearchParams } from 'react-router'
 import { getOrCreatePlayerId, normalizeRoomCode } from '../lib/room'
 import { useInputSender, type ButtonName } from '../lib/useInputSender'
 import { useRoomChannel } from '../lib/useRoomChannel'
 import { EVENTS, type NameMessage, type PhaseMessage, type PlayerInfo } from '../shared/messages'
-import ControllerPanel from './ControllerPanel'
 
-// ボタンを出している間の、名前の下の小さい文字。ラウンドの合間は ControllerPanel に結果を大きく出す（M9）
+// ホームで名前の下に出す小さい文字
 const LOBBY_LABEL = 'PCの画面でスタートを待ってね'
 
 // スマホ側のコントローラー画面。ラフ画どおり、上に自分の番号（自分の色）、左に ←→、右にジャンプ
@@ -50,9 +48,6 @@ export default function ControllerPage() {
   const me = players?.find((p) => p.playerId === playerId)
   const isFull = players !== null && !me
 
-  // 何を出すか（ボタンか、結果か）。つながっていない・参加できないときは、ボタンのまま下の文字で知らせる
-  const view = me ? controllerView(phaseMsg, playerId) : { kind: 'buttons' as const }
-
   let message = ''
   if (status === 'connecting') message = '接続中…'
   else if (status === 'retrying') message = '再接続中…（つながらないときは再読み込みしてください）'
@@ -86,15 +81,11 @@ export default function ControllerPage() {
         {message && <p className="text-sm text-neutral-400">{message}</p>}
       </div>
 
-      {view.kind === 'panel' && !message && me ? (
-        // ラウンドの合間はボタンが効かない（入力を送っていない）ので、ボタンを隠して結果を大きく出す
-        <ControllerPanel view={view} color={me.color} />
-      ) : (
-        <div className="flex w-full flex-1 items-center justify-around">
-          <DirectionPad onChange={setButton} />
-          <JumpButton onChange={setButton} />
-        </div>
-      )}
+      {/* ラウンドの合間も結果は出さず、ボタンだけを出す。結果はPCの画面で見る（スマホは操作に集中させるため） */}
+      <div className="flex w-full flex-1 items-center justify-around">
+        <DirectionPad onChange={setButton} />
+        <JumpButton onChange={setButton} />
+      </div>
 
       {/* iPhone の Safari は横向き固定ができないため、縦向きのときは横にするよう案内する */}
       <div className="absolute inset-0 hidden flex-col items-center justify-center gap-4 bg-neutral-900 text-center portrait:flex">
