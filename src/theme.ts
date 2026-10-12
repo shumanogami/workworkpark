@@ -70,6 +70,9 @@ export const colors = {
     // ミニリザルトの信号のようなライト。点いたライトは START! と同じ山吹色、消えているライトは濃紺の暗い色
     lamp: { on: famicom.gold, off: '#2a2a50', housing: navy, border: famicom.white },
     goal: famicom.gold, // リザルト（階段）の一番上に出す「総合優勝」の文字（START! と同じ山吹色）
+    // カウントダウン中のひと言の指示（「高く跳べ！」など）。濃紺の箱＋白い枠＋山吹色の文字（ミニリザルトのライトと同じ組み合わせ）
+    // 明るい空でも暗い峡谷でも読めるように、箱の外側にもう1周濃紺のふちを付ける
+    instruction: { fill: navy, border: famicom.white, outline: navy, text: famicom.gold, ruby: famicom.white },
   },
 } as const
 
