@@ -26,16 +26,42 @@ export const BASS: (number | null)[] = [
 
 export const LOOP_STEPS = MELODY.length
 
+// 1曲分の楽譜（メロディとベースは同じ長さ）
+export type Score = { melody: (number | null)[]; bass: (number | null)[] }
+
+// ゲーム中の BGM
+export const GAME_SCORE: Score = { melody: MELODY, bass: BASS }
+
+// 総合優勝の画面の BGM。ゲーム中と同じテンポで、明るい C → F → G → C の分散和音をくり返す（お祝いの気分を出すため）
+export const VICTORY_SCORE: Score = {
+  melody: [
+    // C
+    72, 76, 79, 76, 84, 79, 76, 79,
+    // F
+    77, 81, 84, 81, 89, 84, 81, 84,
+    // G
+    79, 83, 86, 83, 91, 86, 83, 86,
+    // C
+    88, 84, 79, 84, 88, null, 84, null,
+  ],
+  bass: [
+    48, null, 60, null, 48, null, 60, null,
+    41, null, 53, null, 41, null, 53, null,
+    43, null, 55, null, 43, null, 55, null,
+    48, null, 55, null, 48, null, null, null,
+  ],
+}
+
 export type ScheduledNote = { part: 'melody' | 'bass'; note: number; time: number; duration: number }
 
 // 曲の頭からの step 番目（8分音符単位、くり返しを含む）の音を、鳴らす時刻つきで返す
-export function notesAtStep(step: number, startTime: number): ScheduledNote[] {
-  const i = step % LOOP_STEPS
+export function notesAtStep(step: number, startTime: number, score: Score = GAME_SCORE): ScheduledNote[] {
+  const i = step % score.melody.length
   const time = startTime + step * STEP_SECONDS
   const notes: ScheduledNote[] = []
-  const m = MELODY[i]
+  const m = score.melody[i]
   if (m !== null) notes.push({ part: 'melody', note: m, time, duration: STEP_SECONDS * 0.9 })
-  const b = BASS[i]
+  const b = score.bass[i]
   if (b !== null) notes.push({ part: 'bass', note: b, time, duration: STEP_SECONDS * 1.9 })
   return notes
 }

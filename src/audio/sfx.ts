@@ -102,3 +102,32 @@ export function playFinish() {
     playTone({ type: 'square', from: midiToFrequency(note), start: i * 0.12, duration: 0.2, volume: 0.3 }),
   )
 }
+
+// 総合優勝の発表前のドラムロール：小刻みな「タタタタ…」がだんだん大きくなる（seconds 秒）
+export function playDrumroll(seconds: number) {
+  const HIT = 0.05 // 1打の間隔（秒）
+  const hits = Math.floor(seconds / HIT)
+  for (let i = 0; i < hits; i++) {
+    playNoise({ from: 1800, to: 900, start: i * HIT, duration: 0.045, volume: 0.12 + (0.33 * i) / hits })
+  }
+}
+
+// 総合優勝の発表：シンバルの「シャーン」と、上がっていく「パパパ・パーン・パ・パーン！」
+export function playFanfare() {
+  playNoise({ from: 9000, to: 3000, duration: 1.2, volume: 0.35 })
+  const melody: [note: number, start: number, duration: number][] = [
+    [67, 0, 0.12],
+    [72, 0.13, 0.12],
+    [76, 0.26, 0.12],
+    [79, 0.39, 0.36],
+    [76, 0.78, 0.12],
+    [79, 0.91, 0.12],
+    [84, 1.04, 1.0],
+  ]
+  for (const [note, start, duration] of melody) {
+    playTone({ type: 'square', from: midiToFrequency(note), start, duration, volume: 0.32 })
+  }
+  // 最後の音にベースと和音を重ねて厚みを出す
+  playTone({ type: 'square', from: midiToFrequency(76), start: 1.04, duration: 1.0, volume: 0.18 })
+  playTone({ type: 'triangle', from: midiToFrequency(48), start: 1.04, duration: 1.0, volume: 0.6 })
+}

@@ -7,6 +7,7 @@ import ScrollDemoPage from './engine/ScrollDemoPage.tsx'
 import SurvivalDemoPage from './engine/SurvivalDemoPage.tsx'
 import MiniResultDemoPage from './platform/MiniResultDemoPage.tsx'
 import ResultDemoPage from './platform/ResultDemoPage.tsx'
+import ChampionDemoPage from './platform/ChampionDemoPage.tsx'
 import DevGamePage from './game/DevGamePage.tsx'
 import DevCloudClimbPage from './games/cloud-climb/DevCloudClimbPage.tsx'
 import DevCoinCollectPage from './games/coin-collect/DevCoinCollectPage.tsx'
@@ -42,6 +43,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dev/mini-result" element={<MiniResultDemoPage />} />
         {/* 開発用：リザルト（階段）の見た目を確認する */}
         <Route path="/dev/result" element={<ResultDemoPage />} />
+        {/* 開発用：総合優勝の演出の確認 */}
+        <Route path="/dev/champion" element={<ChampionDemoPage />} />
         {/* 開発用：マグマラッシュ（G3）の1ラウンドだけを、キーボードで遊ぶ */}
         <Route path="/dev/magma-rush" element={<DevMagmaRushPage />} />
         {/* 開発用：ミニゲームの物（コイン・毒キノコ・鳥・雷）の見本帳 */}

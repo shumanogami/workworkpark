@@ -62,6 +62,8 @@ src/
     stairsLayout.ts        # リザルト（階段）の並べ方（上がる前の段数、1人ずつの立つ位置）
     ResultStairs.tsx       # リザルト（1つの階段に並べ、勝者がぴょんと1段上がる）
     ResultDemoPage.tsx     # 開発用（/dev/result）：リザルト（階段）の見た目を確認する
+    ChampionScreen.tsx     # 総合優勝（ドラムロール → 発表・表彰台・紙吹雪・ファンファーレ → ホームへ戻る）
+    ChampionDemoPage.tsx   # 開発用（/dev/champion）：総合優勝の演出を確認する
   game/                    # Jump the highest（ミニゲームの1つ。芦田担当）。通信には触らない
     miniGame.ts            # Jump the highest をミニゲームとして登録するための情報（id・名前・ひと言の指示）
     JumpTheHighestRound.tsx # 共通の形にはめ込む（終了した瞬間の高さ → 勝った人の一覧）
