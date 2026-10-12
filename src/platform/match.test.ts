@@ -48,7 +48,7 @@ describe('pickNextGame（次のミニゲームを選ぶ）', () => {
   })
 })
 
-describe('ラウンドとミニリザルト（3勝でミニゲームの勝者）', () => {
+describe('ラウンドとミニリザルト（2勝でミニゲームの勝者）', () => {
   it('始めはラウンド。全員0勝・0段', () => {
     const s = createMatch(PLAYERS, GAMES, first)
     expect(s.stage).toBe('round')
@@ -74,21 +74,21 @@ describe('ラウンドとミニリザルト（3勝でミニゲームの勝者）
     expect(finishRound(createMatch(PLAYERS, GAMES, first), ['zzz']).wins).toEqual({ a: 0, b: 0, c: 0 })
   })
 
-  it('まだだれも3勝していなければ、同じミニゲームの次のラウンドへ', () => {
+  it('まだだれも2勝していなければ、同じミニゲームの次のラウンドへ', () => {
     const s = winRounds(createMatch(PLAYERS, GAMES, first), ['a'], WINS_TO_CLEAR - 1)
     expect(s.stage).toBe('round')
     expect(s.gameId).toBe('g1')
     expect(s.roundNumber).toBe(WINS_TO_CLEAR)
   })
 
-  it('3勝したらその人がミニゲームの勝者。1段上がってリザルトへ', () => {
+  it('2勝したらその人がミニゲームの勝者。1段上がってリザルトへ', () => {
     const s = winRounds(createMatch(PLAYERS, GAMES, first), ['a'], WINS_TO_CLEAR)
     expect(s.stage).toBe('result')
     expect(s.gameWinners).toEqual(['a'])
     expect(s.steps).toEqual({ a: 1, b: 0, c: 0 })
   })
 
-  it('2人が同時に3勝したら、2人ともミニゲームの勝者で、2人とも1段上がる（Q2）', () => {
+  it('2人が同時に2勝したら、2人ともミニゲームの勝者で、2人とも1段上がる（Q2）', () => {
     const s = winRounds(createMatch(PLAYERS, GAMES, first), ['a', 'b'], WINS_TO_CLEAR)
     expect(s.gameWinners).toEqual(['a', 'b'])
     expect(s.steps).toEqual({ a: 1, b: 1, c: 0 })

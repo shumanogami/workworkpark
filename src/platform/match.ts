@@ -1,12 +1,12 @@
 // 試合の進行。何勝したか・何段目か・次にどのミニゲームを遊ぶかを決める
 // 画面・通信・音には触らない純粋な関数（テストしやすくするため）。ルールの正は docs/方針.md
 //
-// 流れ：ラウンド → ミニリザルト → （だれかが3勝したら）リザルト（階段）→ （だれかが一番上なら）総合優勝
+// 流れ：ラウンド → ミニリザルト → （だれかが2勝したら）リザルト（階段）→ （だれかが一番上なら）総合優勝
 //   createMatch で始め、ラウンドが終わったら finishRound、ミニリザルトが終わったら afterMiniResult、
 //   リザルトが終わったら afterResult を呼ぶ。今どの画面かは stage を見る
 
 // そのミニゲームの勝者になるのに必要なラウンドの勝ち数
-export const WINS_TO_CLEAR = 3
+export const WINS_TO_CLEAR = 2
 
 // 総合優勝に必要な段数（階段の高さ）
 export const STEPS_TO_WIN = 2
@@ -81,7 +81,7 @@ export function finishRound(state: MatchState, winnerIds: string[]): MatchState 
 }
 
 // ミニリザルトが終わった
-// - だれかが3勝していたら、その人たち（同時なら全員。Q2）がミニゲームの勝者。1段上がってリザルトへ
+// - だれかが2勝していたら、その人たち（同時なら全員。Q2）がミニゲームの勝者。1段上がってリザルトへ
 // - まだなら、同じミニゲームの次のラウンドへ
 export function afterMiniResult(state: MatchState): MatchState {
   if (state.stage !== 'miniResult') return state

@@ -25,7 +25,7 @@ export default function MiniResultDemoPage() {
   const [round, setRound] = useState(1)
   const players = samplePlayers(count)
 
-  // 勝たせる（3勝を超えたら0に戻す）。key を変えて画面を作り直し、点滅をもう一度見られるようにする
+  // 勝たせる（2勝を超えたら0に戻す）。key を変えて画面を作り直し、点滅をもう一度見られるようにする
   const win = (ids: string[]) => {
     setWins((w) => {
       const next = { ...w }
