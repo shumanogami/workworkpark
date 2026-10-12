@@ -1,7 +1,7 @@
 import { drawCoin, drawPoisonMushroom } from '../../engine/objects'
 import { drawCharacter } from '../../game/sprite'
 import { colors, fonts } from '../../theme'
-import { GROUND_HEIGHT, GROUND_Y, PLAYER_SIZE, STAGE_HEIGHT, STAGE_WIDTH, WALL_WIDTH } from './constants'
+import { GROUND_HEIGHT, GROUND_Y, PLAYER_SIZE, ROUND_SECONDS, STAGE_HEIGHT, STAGE_WIDTH, WALL_WIDTH } from './constants'
 import type { FallingState } from './step'
 
 // 落下物避けの描画。座標はステージ座標（960×540）のまま描く（canvas 側で 2倍に拡大する）
@@ -78,8 +78,30 @@ function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x:
   ctx.fillText(name, cx, y)
 }
 
-// 終了の瞬間に、取った点数だけを画面の上に並べる（ラウンド中は出さない）
+// 角を落とした四角（ドット風の丸み）。Jump the highest の TIME の箱と同じ
+function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.fillStyle = colors.frame.border
+  ctx.fillRect(x + 6, y, w - 12, h)
+  ctx.fillRect(x, y + 6, w, h - 12)
+  ctx.fillStyle = colors.frame.fill
+  ctx.fillRect(x + 9, y + 3, w - 18, h - 6)
+  ctx.fillRect(x + 3, y + 9, w - 6, h - 18)
+}
+
+// 残り時間（切り上げで表示し、0 になった瞬間に終了）。上の中央に「TIME 00:12」の形（Jump the highest と同じ）
+function drawTime(ctx: CanvasRenderingContext2D, elapsed: number) {
+  const remaining = Math.max(0, Math.ceil(ROUND_SECONDS - elapsed))
+  drawPanel(ctx, STAGE_WIDTH / 2 - 120, 18, 240, 52)
+  ctx.font = `28px ${fonts.dot}`
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
+  ctx.fillStyle = colors.ink.main
+  ctx.fillText(`TIME 00:${String(remaining).padStart(2, '0')}`, STAGE_WIDTH / 2, 45)
+}
+
+// 各自の点数（キャラの小さな絵＋数字）を TIME の下に横並びで出す。終了の瞬間は一番高い人を黄色にする
 const SCORE_SLOT = 110
+const SCORE_Y = 84
 function drawScores(ctx: CanvasRenderingContext2D, state: FallingState, looks: Record<string, PlayerLook>) {
   const n = state.runners.length
   const left = (STAGE_WIDTH - n * SCORE_SLOT) / 2
@@ -87,7 +109,7 @@ function drawScores(ctx: CanvasRenderingContext2D, state: FallingState, looks: R
   state.runners.forEach((r, i) => {
     const color = looks[r.playerId]?.color ?? colors.ui.text
     const cx = left + i * SCORE_SLOT + SCORE_SLOT / 2
-    drawCharacter(ctx, cx - 40, 24, 28, color, 1)
+    drawCharacter(ctx, cx - 40, SCORE_Y, 28, color, 1)
     ctx.font = `bold 32px ${fonts.dot}`
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
@@ -95,12 +117,13 @@ function drawScores(ctx: CanvasRenderingContext2D, state: FallingState, looks: R
     ctx.lineJoin = 'round'
     ctx.strokeStyle = colors.ink.main
     const text = String(state.scores[r.playerId])
-    ctx.strokeText(text, cx - 6, 38)
-    ctx.fillStyle = state.scores[r.playerId] === best ? colors.ui.finish : colors.frame.fill
-    ctx.fillText(text, cx - 6, 38)
+    ctx.strokeText(text, cx - 6, SCORE_Y + 14)
+    ctx.fillStyle = state.finished && state.scores[r.playerId] === best ? colors.ui.finish : colors.frame.fill
+    ctx.fillText(text, cx - 6, SCORE_Y + 14)
   })
 }
 
+// 残り時間と点数は物・キャラの上に重ねて描く
 // showNames：カウントダウン中だけ名前を出す（遊んでいる間は動きの邪魔になるため。Jump the highest と同じ）
 export function render(ctx: CanvasRenderingContext2D, state: FallingState, looks: Record<string, PlayerLook>, showNames: boolean) {
   drawBackground(ctx)
@@ -114,5 +137,6 @@ export function render(ctx: CanvasRenderingContext2D, state: FallingState, looks
     drawCharacter(ctx, r.x, r.y, PLAYER_SIZE, look?.color ?? colors.ui.text, r.facing, r.stunTime > 0)
     if (showNames && look?.name) drawName(ctx, look.name, look.color, r.x, r.y)
   }
-  if (state.finished) drawScores(ctx, state, looks)
+  drawTime(ctx, state.elapsed)
+  drawScores(ctx, state, looks)
 }
