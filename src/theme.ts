@@ -51,6 +51,13 @@ export const colors = {
   // マグマラッシュ（G3）の峡谷とマグマ。背景の岩はキャラより暗く落ち着かせ、マグマだけは危険と分かるよう明るい朱色・山吹色
   canyon: { back: '#2c1408', wall: '#503000', ledge: '#7c4c1c', ledgeTop: '#a87c4c' },
   magma: { main: famicom.vermilion, surface: famicom.gold, deep: '#a81000' },
+  // ミニゲームに出てくる物（コイン・毒キノコ・鳥・雷）。輪郭はキャラと同じ濃紺（ink）
+  object: {
+    coin: { main: famicom.gold, shade: '#c07800', shine: famicom.cream },
+    poison: { cap: '#a838c8', capDark: '#782898', spot: famicom.cream, stalk: famicom.cream, stalkShade: '#d8a870', mouth: '#8a2a2a' },
+    bird: { body: famicom.indigo, wing: '#7878d0', belly: famicom.cream, beak: famicom.gold },
+    thunder: { cloud: '#8890b8', cloudDark: '#585c88', bolt: famicom.gold, core: famicom.white, warning: famicom.vermilion },
+  },
   ui: {
     countdown: famicom.white, // 3・2・1 の数字
     start: famicom.gold, // START! の文字
