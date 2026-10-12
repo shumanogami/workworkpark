@@ -48,7 +48,7 @@ const SPECS: Record<BlockKind, Spec> = {
       { x: 100, y: MID_Y, width: 280 },
       { x: 170, y: HIGH_Y, width: 140 },
     ],
-    coins: [...row(2, 30, 50, LOW), ...row(4, 130, 40, onTop(MID_Y)), ...row(3, 195, 35, onTop(HIGH_Y)), ...row(2, 400, 45, LOW)],
+    coins: [...row(3, 20, 40, LOW), ...row(4, 130, 40, onTop(MID_Y)), ...row(3, 195, 35, onTop(HIGH_Y)), ...row(3, 390, 35, LOW)],
   },
   // 高段の宝：中段から高段へ登った先に8枚が並ぶ（腕前が要る）
   treasure: {
@@ -56,7 +56,7 @@ const SPECS: Record<BlockKind, Spec> = {
       { x: 20, y: MID_Y, width: 140 },
       { x: 190, y: HIGH_Y, width: 250 },
     ],
-    coins: [...row(2, 60, 50, onTop(MID_Y)), ...row(8, 200, 30, onTop(HIGH_Y)), ...row(2, 300, 60, LOW)],
+    coins: [...row(2, 60, 50, onTop(MID_Y)), ...row(8, 200, 30, onTop(HIGH_Y)), ...row(5, 180, 55, LOW)],
   },
   // 階段：60pxずつ上がる3段。各段に2枚 + 地面
   stairs: {
@@ -69,8 +69,7 @@ const SPECS: Record<BlockKind, Spec> = {
       ...row(2, 45, 35, onTop(GROUND_Y - 60)),
       ...row(2, 185, 35, onTop(GROUND_Y - 120)),
       ...row(2, 325, 35, onTop(GROUND_Y - 180)),
-      ...row(2, 150, 150, LOW),
-      { x: 440, y: LOW },
+      ...row(5, 150, 60, LOW),
     ],
   },
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIXED_DT, GROUND_Y, PLAYER_SIZE, STAGE_WIDTH, TIME_LIMIT } from './constants'
+import { FIXED_DT, GROUND_Y, PLAYER_SIZE, RIGHT_LIMIT, STAGE_WIDTH, TIME_LIMIT } from './constants'
 import { createCoinState, type CoinInputs, type CoinState, leaders, step } from './step'
 
 const NONE = { left: false, right: false, jump: false }
@@ -47,6 +47,11 @@ describe('コイン集めの1コマ', () => {
     const left = s.scroll.offset
     expect(r.x).toBeGreaterThanOrEqual(left - 0.01)
     expect(r.x + r.width).toBeLessThanOrEqual(left + STAGE_WIDTH + 0.01)
+  })
+
+  it('ずっと右を押しても、画面の右の1/3には行けない', () => {
+    const s = run(createCoinState(['a'], 1), 6, () => ({ a: { ...NONE, right: true } }))
+    expect(s.runners[0].x + PLAYER_SIZE).toBeLessThanOrEqual(s.scroll.offset + RIGHT_LIMIT + 0.01)
   })
 
   it('制限時間で終わり、一番多い人が勝つ。それまでは終わらない', () => {

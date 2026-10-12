@@ -3,13 +3,13 @@ import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { applyPickups, collectItems, createScores, type Item, type Scores } from '../../engine/score'
 import { createScroll, type ScrollState, stepScroll, visibleRange } from '../../engine/scroll'
-import { COLLISION, GENERATE_AHEAD, GROUND_Y, JUMPER, PLAYER_SIZE, SCROLL, STAGE_WIDTH, TIME_LIMIT } from './constants'
+import { COLLISION, GENERATE_AHEAD, RIGHT_LIMIT, GROUND_Y, JUMPER, PLAYER_SIZE, SCROLL, STAGE_WIDTH, TIME_LIMIT } from './constants'
 import { createStage, extendStage, GROUND_PLATFORM, nextRandom, type StageGen } from './stage'
 
 // コイン集めの1コマを進める純粋な関数（React・Canvas・通信には触らない）
 // 1. 横スクロールを進める（カメラが右へ。画面の左端が「動く壁」で、遅れた人を押して運ぶ）
 // 2. 画面の右の少し先まで、コインと足場を足す
-// 3. 全員を動かす（キャラの物理 → 足場に乗る → キャラどうしの当たり判定）
+// 3. 全員を動かす（画面の右の1/3には行けない）（キャラの物理 → 足場に乗る → キャラどうしの当たり判定）
 // 4. 触れたコインを取り、点数に足す（点数は画面に出さない）
 // 5. 制限時間になったら終わり。一番多い人が勝ち（同数は引き分け）
 
@@ -82,8 +82,9 @@ export function step(state: CoinState, inputs: CoinInputs, dt: number): CoinStat
 
   const scroll = stepScroll(state.scroll, SCROLL, dt)
   const { from: left, to: right } = visibleRange(SCROLL, scroll, STAGE_WIDTH)
-  const jumper = { ...JUMPER, minX: left, maxX: right }
-  const collision = { ...COLLISION, minX: left, maxX: right }
+  const limit = left + RIGHT_LIMIT
+  const jumper = { ...JUMPER, minX: left, maxX: limit }
+  const collision = { ...COLLISION, minX: left, maxX: limit }
 
   const stage = extendStage(state.gen, right + GENERATE_AHEAD)
   const platforms = [...state.platforms.filter((p) => p.x + p.width > left - KEEP_BEHIND), ...stage.platforms]

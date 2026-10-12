@@ -1,6 +1,6 @@
 import { DEFAULT_JUMPER, type JumperConfig } from '../../engine/jumper'
 import { DEFAULT_COLLISION, type JumperCollisionConfig } from '../../engine/jumperCollisions'
-import { DEFAULT_HORIZONTAL } from '../../engine/scroll'
+import type { ScrollConfig } from '../../engine/scroll'
 
 // コイン集めの定数。座標は src/engine/ と同じ（左上が原点、下向きが正）。ステージは 960×540
 // 数値は仮。実際に遊んで調整する
@@ -18,8 +18,17 @@ export const MID_Y = 340 // 中段の足場の上面
 export const HIGH_Y = 240 // 高段の足場の上面
 export const PLATFORM_HEIGHT = 16 // 足場の厚み（見た目だけ。乗る判定は上面）
 
-// 横スクロールは共通の初期設定（60 → 16秒で300 → 20秒で500 px/秒）。野上さんの指示（2026-10-12）
-export const SCROLL = DEFAULT_HORIZONTAL
+// 横スクロール：60 px/秒から始まり、11秒で最高の 170 px/秒になる（以降は一定。18秒で約2,450px 進む）
+// キャラの走る速さ（208 px/秒）より遅くして、遅れても追いつけるようにした。共通の初期設定（最高500）は速すぎた（野上さん 2026-10-12）
+export const SCROLL: ScrollConfig = {
+  axis: 'horizontal',
+  direction: 1,
+  initialSpeed: 60,
+  phases: [{ acceleration: 10, maxSpeed: 170 }],
+}
+
+// 動ける範囲の右端（画面の左端から）。画面の右端に居座ると、流れてくるコインを総取りできてしまうため、画面の2/3までにした（ボット計測 2周目）
+export const RIGHT_LIMIT = 640
 
 // 画面の左端は「動く壁」。スクロールに遅れた人は、壁に押されて運ばれる（置いていかれても、ゲームから外れない）
 // 動ける範囲は、毎コマ、画面の左端〜右端に合わせる（step.ts）
