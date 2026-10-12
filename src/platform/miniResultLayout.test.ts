@@ -12,12 +12,12 @@ describe('columnCount（何列に並べるか）', () => {
 
 describe('lampStates（ライトの状態）', () => {
   it('勝ち数の分だけ左から点く', () => {
-    expect(lampStates(0, false)).toEqual(['off', 'off', 'off'])
-    expect(lampStates(2, false)).toEqual(['on', 'on', 'off'])
+    expect(lampStates(0, false)).toEqual(['off', 'off'])
+    expect(lampStates(1, false)).toEqual(['on', 'off'])
   })
 
   it('今回勝った人は、今回点いたライト（一番右の点いたもの）だけが new', () => {
-    expect(lampStates(1, true)).toEqual(['new', 'off', 'off'])
-    expect(lampStates(3, true)).toEqual(['on', 'on', 'new'])
+    expect(lampStates(1, true)).toEqual(['new', 'off'])
+    expect(lampStates(2, true)).toEqual(['on', 'new'])
   })
 })
