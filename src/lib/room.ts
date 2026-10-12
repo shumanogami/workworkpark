@@ -27,21 +27,48 @@ export function roomTopic(roomCode: string): string {
 }
 
 // sessionStorage は、プライベートブラウズ等で使えないと例外を投げることがあるため、失敗しても動くようにする
-function loadOrCreate(key: string, create: () => string): string {
+// （PCのルームコードは localStorage に移したので、今は以前の版のルームコードを引き継ぐときだけ使う）
+function readSession(key: string): string | null {
   try {
-    const saved = sessionStorage.getItem(key)
-    if (saved) return saved
-    const value = create()
-    sessionStorage.setItem(key, value)
-    return value
+    return sessionStorage.getItem(key)
   } catch {
-    return create()
+    return null
   }
 }
 
-// PC：再読み込みしても同じルームのままにする（つないだスマホが置いていかれないように）
-export function getOrCreateRoomCode(): string {
-  return loadOrCreate(HOST_ROOM_KEY, generateRoomCode)
+// PCのルームコードをどれにするかを決める。保存・読み込みはしない純粋な関数（テストしやすくするため）
+// 優先順：① URL で指定したコード（例：/?room=WORK。QRを印刷して貼っておくとき）
+//         ② このPCのブラウザに保存してあるコード（タブを閉じても、ブラウザを開き直しても同じQRになる）
+//         ③ 以前の版でタブに保存したコード ④ 新しく作る
+// 不正な値（4文字の英字でない）は無視する
+export function chooseRoomCode(
+  candidates: { fromUrl: string | null; saved: string | null; legacy: string | null },
+  create: () => string = generateRoomCode,
+): string {
+  return (
+    normalizeRoomCode(candidates.fromUrl) ??
+    normalizeRoomCode(candidates.saved) ??
+    normalizeRoomCode(candidates.legacy) ??
+    create()
+  )
+}
+
+// PC：ルームコードを決めて、このPCのブラウザに保存する（QRコードを毎回同じにするため）
+// 注意：同じブラウザで PC 画面を2つ開くと、2つとも同じルームになる
+export function getOrCreateRoomCode(fromUrl: string | null = null): string {
+  let saved: string | null = null
+  try {
+    saved = localStorage.getItem(HOST_ROOM_KEY)
+  } catch {
+    // 保存できない環境（プライベートブラウズなど）では、その画面の間だけのコードになる
+  }
+  const code = chooseRoomCode({ fromUrl, saved, legacy: readSession(HOST_ROOM_KEY) })
+  try {
+    localStorage.setItem(HOST_ROOM_KEY, code)
+  } catch {
+    // 同上
+  }
+  return code
 }
 
 // スマホ：同じスマホなら、再読み込み・タブを閉じた後・QRを読み直した後も同じ playerId で復帰させる（方針.md の Q4）
