@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { startBgm, stopBgm } from '../../audio/bgm'
-import { playCountdownGo, playCountdownTick, playFinish, playJump } from '../../audio/sfx'
+import { playBounce, playCountdownGo, playCountdownTick, playFinish, playJump, playMagmaDeath } from '../../audio/sfx'
 import { drawCountdown, drawFinish } from '../../game/overlay'
 import { COUNTDOWN_SECONDS, countdownBeat, countdownLabel } from '../../game/sequence'
 import type { RoundProps } from '../../platform/types'
@@ -75,13 +75,21 @@ export default function MagmaRushRound({ players, getInputs, onRoundEnd }: Round
 
       accumulator += delta
       let jumped = false
+      let bounced = false
+      let burned = false
       while (accumulator >= FIXED_DT && !state.finished) {
         const next = step(state, getInputsRef.current(), FIXED_DT)
         jumped ||= next.runners.some((r, i) => r.vy < 0 && state.runners[i].vy >= 0 && state.runners[i].standingOn !== null)
+        // 弾かれた瞬間（弾かれて操作できない時間が始まった）
+        bounced ||= next.runners.some((r, i) => r.stunTime > 0 && state.runners[i].stunTime === 0)
+        // マグマに飲まれた瞬間
+        burned ||= next.survival.eliminated.length > state.survival.eliminated.length
         state = next
         accumulator -= FIXED_DT
       }
       if (jumped) playJump()
+      if (bounced) playBounce()
+      if (burned) playMagmaDeath()
 
       render(ctx, state, looks, false)
       const label = countdownLabel(prevCountdownT)

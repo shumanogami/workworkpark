@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { createScroll, type ScrollState, stepScroll, visibleRange } from '../../engine/scroll'
 import {
@@ -11,6 +12,7 @@ import {
   touchingHazards,
 } from '../../engine/survival'
 import {
+  COLLISION,
   FLOOR_Y,
   JUMPER,
   MAGMA_DEPTH_MAX,
@@ -27,7 +29,7 @@ import { createStage, extendStage, type StageGen } from './stage'
 // マグマラッシュの1コマを進める純粋な関数（React・Canvas・通信には触らない）
 // 1. 縦スクロールを進める（カメラが上がる。マグマはカメラの下端にくっついて一緒に上がる）
 // 2. 画面の少し上まで足場を足す
-// 3. 生きている人だけを動かす（キャラの物理 → 足場に乗る → 画面の上端で止める）
+// 3. 生きている人だけを動かす（キャラの物理 → 足場に乗る → キャラどうしの当たり判定 → 画面の上端で止める）
 // 4. マグマに触れた人を脱落させる。足場から落ちた人も、マグマに沈んで脱落する
 // 5. 最後の1人になったら終わり（finished）
 
@@ -101,10 +103,23 @@ export function step(state: MagmaState, inputs: MagmaInputs, dt: number): MagmaS
   const { gen, added } = extendStage(state.gen, top - GENERATE_AHEAD)
   const platforms = [...state.platforms.filter((p) => p.y < top + STAGE_HEIGHT + KEEP_BELOW), ...added]
 
-  const runners = state.runners.map((r) => {
-    if (!isAlive(state.survival, r.playerId)) return r // 脱落した人は動かさない・入力を受け付けない
-    const moved = moveJumper(r, inputs[r.playerId], dt, JUMPER)
-    const landed = { ...moved, ...updateOnPlatforms(r, moved, platforms, platforms) }
+  // 生きている人だけを動かす（脱落した人は動かさない・入力を受け付けない・ぶつからない）
+  const moved = state.runners.map((r) => {
+    if (!isAlive(state.survival, r.playerId)) return r
+    const m = moveJumper(r, inputs[r.playerId], dt, JUMPER)
+    return { ...m, ...updateOnPlatforms(r, m, platforms, platforms) }
+  })
+  // キャラどうしの当たり判定（Jump the highest と同じ。頭に乗る・横からぶつかると弾かれる）
+  const aliveBefore = state.runners.filter((r) => isAlive(state.survival, r.playerId))
+  const resolved = new Map(
+    resolveJumperCollisions(
+      aliveBefore,
+      aliveBefore.map((r) => moved.find((m) => m.playerId === r.playerId)!),
+      COLLISION,
+    ).map((r) => [r.playerId, r]),
+  )
+  const runners = moved.map((r) => {
+    const landed = resolved.get(r.playerId) ?? r
     // 画面の上端より上へは行けない（画面に映らなくなるため、見えない天井で止める）
     if (landed.y < top) return { ...landed, y: top, vy: Math.max(landed.vy, 0) }
     return landed

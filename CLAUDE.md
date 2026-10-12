@@ -92,6 +92,7 @@ src/
     ScrollDemoPage.tsx     # 開発用（/dev/scroll）：スクロールの動きを確認する
     platforms.ts           # 足場（下からすり抜け、上から乗れる雲など）に乗る・運ばれる・降りる処理
     PlatformDemoPage.tsx   # 開発用（/dev/platforms）：足場の動きを確認する（見た目は仮）
+    jumperCollisions.ts    # キャラどうしの当たり判定（頭に乗る・横から弾く。Jump the highest と同じ。下向きが正）
     rect.ts                # 当たり判定の長方形（重なり・中心）。部品どうしで共通
     score.ts               # ポイント：アイテムを取ると加点・減点（0 未満にはならない）
     survival.ts            # 脱落（危険物・画面外）と、最後まで生き残った人が勝ちの判定・順位

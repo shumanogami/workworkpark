@@ -36,13 +36,14 @@ export type Jumper = Body & {
   facing: 1 | -1 // 向いている向き（1：右、-1：左）。描くときに使う
   jumpHeld: boolean // 前のコマでジャンプを押していたか（押しっぱなしで跳び続けないように）
   jumpBuffer: number // 受け付けたジャンプの残り時間（秒）
+  stunTime: number // 弾かれて操作できない残り時間（秒）。この間は入力を受け付けず、横の勢いのまま飛ぶ（jumperCollisions.ts が入れる）
 }
 
 // ボタンの状態。スマホの3ボタン（左・右・ジャンプ）。undefined は何も押していない扱い
 export type JumperInput = { left: boolean; right: boolean; jump: boolean } | undefined
 
 export function createJumper(x: number, y: number, size: number): Jumper {
-  return { x, y, width: size, height: size, vx: 0, vy: 0, standingOn: null, facing: 1, jumpHeld: false, jumpBuffer: 0 }
+  return { x, y, width: size, height: size, vx: 0, vy: 0, standingOn: null, facing: 1, jumpHeld: false, jumpBuffer: 0, stunTime: 0 }
 }
 
 // ジャンプの最高到達点（足元が上がる高さ、ピクセル）
@@ -58,15 +59,18 @@ function approach(value: number, target: number, step: number): number {
 // dt 秒進めた次の状態（足場に乗る・降りるは、この後 updateOnPlatforms で決める）
 // playerId などゲームごとに足した項目は、そのまま引き継ぐ
 export function moveJumper<T extends Jumper>(j: T, input: JumperInput, dt: number, config: JumperConfig): T {
-  const dir = (input?.right ? 1 : 0) - (input?.left ? 1 : 0)
+  // 弾かれている間は、左右もジャンプも受け付けず、横の勢いのまま飛ぶ
+  const stunned = j.stunTime > 0
+  const stunTime = Math.max(0, j.stunTime - dt)
+  const dir = stunned ? 0 : (input?.right ? 1 : 0) - (input?.left ? 1 : 0)
   const jump = !!input?.jump
 
   // 押した瞬間だけ受け付ける。猶予の間に着地すれば跳ぶ
   const pressed = jump && !j.jumpHeld
-  let jumpBuffer = pressed ? config.jumpBufferTime : Math.max(0, j.jumpBuffer - dt)
+  let jumpBuffer = stunned ? 0 : pressed ? config.jumpBufferTime : Math.max(0, j.jumpBuffer - dt)
 
   const accel = j.standingOn ? config.groundAccel : config.airAccel
-  const vx = approach(j.vx, dir * config.moveSpeed, accel * dt)
+  const vx = stunned ? j.vx : approach(j.vx, dir * config.moveSpeed, accel * dt)
 
   let vy = j.vy
   let standingOn = j.standingOn
@@ -98,5 +102,6 @@ export function moveJumper<T extends Jumper>(j: T, input: JumperInput, dt: numbe
     facing: dir === 0 ? j.facing : dir > 0 ? 1 : -1,
     jumpHeld: jump,
     jumpBuffer,
+    stunTime,
   }
 }

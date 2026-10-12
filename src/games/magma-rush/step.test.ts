@@ -107,3 +107,45 @@ describe('マグマラッシュの1コマ', () => {
     expect(magmaTop(s)).toBeLessThan(cameraTop(s) + STAGE_HEIGHT)
   })
 })
+
+describe('マグマラッシュのキャラどうしの当たり判定（Jump the highest と同じ）', () => {
+  // 2人を同じ高さの岩場に並べる（x だけ指定）
+  function twoOnFloor(ax: number, bx: number): MagmaState {
+    const s = createMagmaState(['a', 'b'], 1)
+    const at = (x: number, r: (typeof s.runners)[number]) => ({ ...r, x })
+    return { ...s, runners: [at(ax, s.runners[0]), at(bx, s.runners[1])] }
+  }
+
+  it('頭の上に落ちてきた人は、下の人の頭に立つ', () => {
+    const s0 = twoOnFloor(300, 300)
+    const [a, b] = s0.runners
+    const s = step({ ...s0, runners: [a, { ...b, y: a.y - PLAYER_SIZE - 20, standingOn: null }] }, {}, FIXED_DT)
+    let t = s
+    for (let i = 0; i < 20; i++) t = step(t, {}, FIXED_DT)
+    const [ta, tb] = t.runners
+    expect(tb.standingOn).toBe('a')
+    expect(tb.y).toBeCloseTo(ta.y - PLAYER_SIZE)
+  })
+
+  it('横から走ってぶつかると弾かれ、しばらく操作を受け付けない', () => {
+    const s0 = twoOnFloor(300, 330) // 10px 重なっている
+    const s1 = step(s0, { a: { ...NONE, right: true }, b: { ...NONE, left: true } }, FIXED_DT)
+    // 近づこうとして重なる → 弾かれる
+    let t = s1
+    for (let i = 0; i < 3 && t.runners[0].stunTime === 0; i++) {
+      t = step(t, { a: { ...NONE, right: true }, b: { ...NONE, left: true } }, FIXED_DT)
+    }
+    expect(t.runners[0].stunTime).toBeGreaterThan(0)
+    expect(t.runners[1].stunTime).toBeGreaterThan(0)
+    expect(t.runners[0].vx).toBeLessThan(0) // a は左へ
+    expect(t.runners[1].vx).toBeGreaterThan(0) // b は右へ
+  })
+
+  it('脱落した人とは、ぶつからない（すり抜ける）', () => {
+    const s0 = twoOnFloor(300, 310)
+    const dead = { ...s0, survival: { ...s0.survival, eliminated: [{ playerId: 'b', at: 0, cause: 'lava' }] } }
+    const t = step(dead, {}, FIXED_DT)
+    expect(t.runners[0].x).toBe(300) // 押されない
+    expect(t.runners[0].stunTime).toBe(0)
+  })
+})

@@ -1,4 +1,5 @@
 import { DEFAULT_JUMPER, type JumperConfig } from '../../engine/jumper'
+import { DEFAULT_COLLISION, type JumperCollisionConfig } from '../../engine/jumperCollisions'
 import type { ScrollConfig } from '../../engine/scroll'
 
 // マグマラッシュの定数。座標は src/engine/ と同じ（左上が原点、下向きが正）。ステージは Jump the highest と同じ 960×540
@@ -18,6 +19,14 @@ export const JUMPER: JumperConfig = {
   ...DEFAULT_JUMPER,
   minX: WALL_WIDTH,
   maxX: STAGE_WIDTH - WALL_WIDTH,
+}
+
+// キャラどうしの当たり判定は Jump the highest と同じ（頭に乗れる・横からぶつかると弾かれる）。値も同じ
+export const COLLISION: JumperCollisionConfig = {
+  ...DEFAULT_COLLISION,
+  minX: WALL_WIDTH,
+  maxX: STAGE_WIDTH - WALL_WIDTH,
+  minStandOverlap: PLAYER_SIZE / 4,
 }
 
 // 縦スクロール（＝マグマが上がる速さ）。最初はゆっくり、だんだん速くなり、最後は登りきれない速さになって勝負がつく
