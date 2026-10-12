@@ -45,6 +45,7 @@ export const MAX_EDGE_GAP = 90
 export const FIRST_HAZARD_AT = 6 // 最初の雷・鳥が出る時刻（秒）。それまでは登ることに集中できる
 export const HAZARD_INTERVAL = { start: 3.2, end: 2.0 } // 次が出るまでの間隔（秒）。時間とともに start → end
 export const HAZARD_INTERVAL_SECONDS = 16 // この秒数で end になる
+export const BIRD_SHARE = 0.5 // 出るのが鳥である確率（残りは雷）
 export const MAX_ACTIVE_HAZARDS = 2 // 同時に出る雷・鳥の数（予告中も数える）
 export const THUNDER_JITTER = 40 // 雷が狙った人の真上からずれる最大の幅（px）
 export const BIRD_SPEED = 220 // 鳥の速さ（px/秒）

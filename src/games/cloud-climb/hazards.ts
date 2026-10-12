@@ -1,5 +1,6 @@
 import { boltHitRect, hitRect, OBJECT_SIZE, THUNDER_STRIKE_SECONDS, THUNDER_WARNING_SECONDS, thunderPhase } from '../../engine/objects'
 import {
+  BIRD_SHARE,
   BIRD_SPEED,
   BIRD_WARNING_SECONDS,
   FIRST_HAZARD_AT,
@@ -71,7 +72,7 @@ export function stepHazards(state: HazardState, now: number, targets: Target[]):
   const progress = Math.min(Math.max(now / HAZARD_INTERVAL_SECONDS, 0), 1)
   const interval = (HAZARD_INTERVAL.start + (HAZARD_INTERVAL.end - HAZARD_INTERVAL.start) * progress) * (0.7 + rand() * 0.6)
   const next = { ...base, nextAt: now + interval, nextId: state.nextId + 1 }
-  if (rand() < 0.5) {
+  if (rand() >= BIRD_SHARE) {
     // 雷：狙った人の近くの柱。少しずらすので、真上に立っていれば動いてよける
     const w = OBJECT_SIZE.bolt.width
     const x = Math.round(Math.min(Math.max(target.x - w / 2 + (rand() * 2 - 1) * THUNDER_JITTER, 0), STAGE_WIDTH - w))
