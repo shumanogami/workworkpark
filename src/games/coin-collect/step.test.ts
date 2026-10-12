@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { SCROLL } from './constants'
 import { POISON_POINTS, COIN_POINTS, FIXED_DT, GROUND_Y, PLAYER_SIZE, RIGHT_LIMIT, STAGE_WIDTH, TIME_LIMIT } from './constants'
 import { createCoinState, type CoinInputs, type CoinState, leaders, step } from './step'
 
@@ -93,5 +94,31 @@ describe('コイン集めの1コマ', () => {
     expect(poison.pops.some((p) => p.poison)).toBe(true)
     const floor = step({ ...poison, coins: [at('p2', POISON_POINTS, 'poison')] }, {}, FIXED_DT)
     expect(floor.scores.a).toBe(0)
+  })
+
+  it('スクロールはずっと同じ速さ（60 px/秒）で、加速しない', () => {
+    let s = createCoinState(['a'], 1)
+    expect(SCROLL.initialSpeed).toBe(60)
+    const speeds = new Set<number>()
+    let t = 0
+    while (!s.finished) {
+      s = step(s, {}, FIXED_DT)
+      speeds.add(s.scroll.speed)
+      t += FIXED_DT
+    }
+    expect([...speeds]).toEqual([60])
+    expect(s.scroll.offset).toBeCloseTo(60 * t, 3)
+  })
+
+  it('まわりの3人が止まっていても、ジャンプで頭に乗って越えれば、右へ進める（横からは弾かれて進めない）', () => {
+    for (let seed = 0; seed < 40; seed++) {
+      const ids = ['p1', 'p2', 'p3', 'p4']
+      const start = createCoinState(ids, seed * 977).runners[0].x
+      // 右を押しながら、1秒に1回ジャンプ（着地するたびに押し直す）
+      const jumper = (s: CoinState): CoinInputs => ({ p1: { ...NONE, right: true, jump: s.runners[0].standingOn !== null && !s.runners[0].jumpHeld } })
+      const s = run(createCoinState(ids, seed * 977), 6, jumper)
+      // 壁に押される分（スクロールした距離）より、自分の力で60px以上先へ進んでいる
+      expect(s.runners[0].x).toBeGreaterThan(start + s.scroll.offset + 60)
+    }
   })
 })

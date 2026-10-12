@@ -38,7 +38,7 @@ const KEEP_BEHIND = 200 // 画面の左端よりこれだけ左の足場は、�
 export function createCoinState(playerIds: string[], seed: number): CoinState {
   const stage = extendStage(createStage(seed), STAGE_WIDTH + GENERATE_AHEAD)
   // スタート地点に、間を空けて横に並べる（8人でも重ならない）。右ほど最初のコインに近くて有利なので、並ぶ順はラウンドごとにシャッフルする
-  const slots = shuffled(playerIds.map((_, i) => i), seed + 1)
+  const slots = shuffled(playerIds.map((_, i) => i), Math.imul(seed, 0x9e3779b1) ^ 0x85ebca6b)
   const runners = playerIds.map((playerId, i) => ({
     ...createJumper(70 + slots[i] * 56, GROUND_Y - PLAYER_SIZE, PLAYER_SIZE),
     standingOn: 'ground',
