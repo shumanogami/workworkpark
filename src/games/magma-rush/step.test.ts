@@ -148,4 +148,15 @@ describe('マグマラッシュのキャラどうしの当たり判定（Jump th
     expect(t.runners[0].x).toBe(300) // 押されない
     expect(t.runners[0].stunTime).toBe(0)
   })
+
+  it('頭の上に乗っている人は、下の人が横に歩くと一緒に運ばれる', () => {
+    const s0 = createMagmaState(['a', 'b'], 1)
+    const [a, b] = s0.runners
+    const stacked = { ...s0, runners: [a, { ...b, x: a.x, y: a.y - PLAYER_SIZE, standingOn: 'a' }] }
+    const s1 = run(stacked, 0.5, () => ({ a: { ...NONE, right: true } }))
+    const [na, nb] = s1.runners
+    expect(na.x).toBeGreaterThan(a.x + 30) // 下の人は歩いている
+    expect(nb.x).toBeCloseTo(na.x, 0) // 上の人は何も押していないのに、同じだけ動いた
+    expect(nb.standingOn).toBe('a') // ずっと頭の上に立っている
+  })
 })

@@ -1,4 +1,5 @@
 import { createJumper, type Jumper, type JumperInput, moveJumper } from '../../engine/jumper'
+import { carryRiders } from '../../engine/carry'
 import { resolveJumperCollisions } from '../../engine/jumperCollisions'
 import { type Platform, updateOnPlatforms } from '../../engine/platforms'
 import { createSurvival, eliminate, type Hazard, isAlive, judgeSurvivor, type SurvivalState, touchingHazards } from '../../engine/survival'
@@ -71,28 +72,21 @@ export function step(state: PushOutState, inputs: PushOutInputs, dt: number): Pu
   const elapsed = state.elapsed + dt
   const platform = platformAt(state.runners.length, elapsed)
 
-  // 下にいる人（y が大きい人）から順に動かす。頭の上に乗っている人を、下の人が動いた分だけ一緒に横へ運ぶため
-  // （Jump the highest と同じ。3段重ねでも一番上まで同じだけ運ばれる）
-  const order = state.runners.map((_, i) => i).sort((i, j) => state.runners[j].y - state.runners[i].y)
-  const moved: Runner[] = [...state.runners]
-  const dxById = new Map<string, number>()
-  for (const i of order) {
-    const r = state.runners[i]
-    if (!isAlive(state.survival, r.playerId)) continue
-    const carryDx = r.standingOn ? (dxById.get(r.standingOn) ?? 0) : 0
+  // 生きている人だけを動かす
+  const moved = state.runners.map((r) => {
+    if (!isAlive(state.survival, r.playerId)) return r
     const m = moveJumper(r, inputs[r.playerId], dt, JUMPER)
-    const carried = carryDx === 0 ? m : { ...m, x: Math.min(Math.max(m.x + carryDx, JUMPER.minX), JUMPER.maxX - m.width) }
-    moved[i] = { ...carried, ...updateOnPlatforms(r, carried, [state.platform], [platform]) }
-    dxById.set(r.playerId, moved[i].x - r.x)
-  }
+    return { ...m, ...updateOnPlatforms(r, m, [state.platform], [platform]) }
+  })
+  // 頭の上に乗っている人は、下の人が横に動いた分だけ一緒に運ぶ（Jump the highest と同じ。3段重ねでも一番上まで伝わる）
   const aliveBefore = state.runners.filter((r) => isAlive(state.survival, r.playerId))
-  const resolved = new Map(
-    resolveJumperCollisions(
-      aliveBefore,
-      aliveBefore.map((r) => moved.find((m) => m.playerId === r.playerId)!),
-      COLLISION,
-    ).map((r) => [r.playerId, r]),
+  const carried = carryRiders(
+    aliveBefore,
+    aliveBefore.map((r) => moved.find((m) => m.playerId === r.playerId)!),
+    JUMPER.minX,
+    JUMPER.maxX,
   )
+  const resolved = new Map(resolveJumperCollisions(aliveBefore, carried, COLLISION).map((r) => [r.playerId, r]))
   const runners = moved.map((r) => resolved.get(r.playerId) ?? r)
 
   // 足場の外に落ちて、マグマの表面より下に体の底が入った人は脱落
