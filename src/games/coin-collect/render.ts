@@ -2,7 +2,7 @@ import { drawCoin, OBJECT_SIZE } from '../../engine/objects'
 import { toScreen, wrapOffset } from '../../engine/scroll'
 import { drawCharacter } from '../../game/sprite'
 import { colors, fonts } from '../../theme'
-import { GROUND_Y, PLAYER_SIZE, SCROLL, STAGE_HEIGHT, STAGE_WIDTH } from './constants'
+import { GROUND_Y, PLAYER_SIZE, SCROLL, STAGE_HEIGHT, STAGE_WIDTH, TIME_LIMIT } from './constants'
 import type { CoinState } from './step'
 
 // コイン集めの描画。座標はステージ座標（960×540）のまま描く（canvas 側で 2倍に拡大する）
@@ -91,6 +91,57 @@ function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x:
   ctx.fillText(name, cx, y)
 }
 
+// 角を欠いた箱（TIME の箱と同じ形。Jump the highest の drawPanel と同じ）。border で枠の色を変えられる
+function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, border: string = colors.frame.border) {
+  ctx.fillStyle = border
+  ctx.fillRect(x + 6, y, w - 12, h)
+  ctx.fillRect(x, y + 6, w, h - 12)
+  ctx.fillStyle = colors.frame.fill
+  ctx.fillRect(x + 9, y + 3, w - 18, h - 6)
+  ctx.fillRect(x + 3, y + 9, w - 6, h - 18)
+}
+
+// 1人分の枚数の箱：キャラの絵 + 「×枚数」。highlight は勝った人（枠を山吹色にする）
+function drawCountChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, count: number, size: number, highlight: boolean) {
+  drawPanel(ctx, x, y, w, h, highlight ? colors.ui.start : colors.frame.border)
+  const icon = size
+  drawCharacter(ctx, x + 12, y + (h - icon) / 2, icon, color, 1)
+  ctx.font = `bold ${size >= 40 ? (w >= 130 ? 36 : 28) : 24}px ${fonts.dot}`
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = colors.ink.main
+  ctx.fillText(`×${count}`, x + 12 + icon + 8, y + h / 2 + 2)
+}
+
+// 遊んでいる間：残り時間（上の真ん中）と、全員のコインの枚数（下の地面の部分。キャラや足場に重ならない）
+function drawHud(ctx: CanvasRenderingContext2D, state: CoinState, looks: Record<string, PlayerLook>) {
+  const remaining = Math.max(0, Math.ceil(TIME_LIMIT - state.scroll.elapsed))
+  drawPanel(ctx, STAGE_WIDTH / 2 - 120, 18, 240, 52)
+  ctx.font = `28px ${fonts.dot}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = colors.ink.main
+  ctx.fillText(`TIME 00:${String(remaining).padStart(2, '0')}`, STAGE_WIDTH / 2, 45)
+
+  const n = state.runners.length
+  const w = Math.min(112, Math.floor((STAGE_WIDTH - 40) / n) - 8)
+  const total = n * (w + 8) - 8
+  state.runners.forEach((r, i) => {
+    drawCountChip(ctx, (STAGE_WIDTH - total) / 2 + i * (w + 8), GROUND_Y + 28, w, 48, looks[r.playerId]?.color ?? colors.ui.text, state.scores[r.playerId] ?? 0, 20, false)
+  })
+}
+
+// 終わったとき：集めた枚数を、多い順に上に並べる。勝った人（引き分けなら全員）は枠が山吹色
+function drawResult(ctx: CanvasRenderingContext2D, state: CoinState, looks: Record<string, PlayerLook>) {
+  const ranked = [...state.runners].sort((a, b) => (state.scores[b.playerId] ?? 0) - (state.scores[a.playerId] ?? 0))
+  const n = ranked.length
+  const w = Math.min(140, Math.floor((STAGE_WIDTH - 40) / n) - 8)
+  const total = n * (w + 8) - 8
+  ranked.forEach((r, i) => {
+    drawCountChip(ctx, (STAGE_WIDTH - total) / 2 + i * (w + 8), 24, w, 72, looks[r.playerId]?.color ?? colors.ui.text, state.scores[r.playerId] ?? 0, 40, state.winners.includes(r.playerId))
+  })
+}
+
 export type PlayerLook = { color: string; name: string }
 
 // showNames：カウントダウン中だけ名前を出す（遊んでいる間は動きの邪魔になるため。Jump the highest と同じ）
@@ -106,4 +157,6 @@ export function render(ctx: CanvasRenderingContext2D, state: CoinState, looks: R
     if (showNames && look?.name) drawName(ctx, look.name, look.color, s.x, s.y)
   }
   drawPops(ctx, state)
+  if (state.finished) drawResult(ctx, state, looks)
+  else drawHud(ctx, state, looks)
 }
