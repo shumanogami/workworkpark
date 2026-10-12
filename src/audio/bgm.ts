@@ -6,7 +6,7 @@ import { GAME_SCORE, notesAtStep, STEP_SECONDS, type Score } from './score'
 
 const LOOKAHEAD = 0.15
 const TICK_MS = 25
-const BGM_VOLUME = 0.12
+const BGM_VOLUME = 0.2
 
 let timer: ReturnType<typeof setInterval> | null = null
 let bus: GainNode | null = null
