@@ -15,19 +15,19 @@ describe('controllerView（スマホに何を出すか）', () => {
   })
 
   it('ミニリザルト：勝った人は「勝った！」、勝ち数の段にいる', () => {
-    const msg: PhaseMessage = { ...base, phase: 'miniResult', winnerIds: ['a'], wins: { a: 2, b: 0 } }
+    const msg: PhaseMessage = { ...base, phase: 'miniResult', winnerIds: ['a'], wins: { a: 1, b: 0 } }
     expect(controllerView(msg, 'a')).toMatchObject({
       headline: '勝った！',
       highlight: true,
-      stairs: { levels: 3, current: 2 },
+      stairs: { levels: 2, current: 1 },
       note: 'あと1勝でこのゲームの勝者',
     })
     expect(controllerView(msg, 'b')).toMatchObject({ headline: '次のラウンドへ', highlight: false, stairs: { current: 0 } })
   })
 
-  it('ミニリザルト：3勝したら「このゲームの勝者！」', () => {
-    const msg: PhaseMessage = { ...base, phase: 'miniResult', winnerIds: ['a'], wins: { a: 3 } }
-    expect(controllerView(msg, 'a')).toMatchObject({ stairs: { current: 3 }, note: 'このゲームの勝者！' })
+  it('ミニリザルト：2勝したら「このゲームの勝者！」', () => {
+    const msg: PhaseMessage = { ...base, phase: 'miniResult', winnerIds: ['a'], wins: { a: 2 } }
+    expect(controllerView(msg, 'a')).toMatchObject({ stairs: { current: 2 }, note: 'このゲームの勝者！' })
   })
 
   it('リザルト：上がった人は「1段上がった！」、上がれなかった人には勝者の番号を出す', () => {
