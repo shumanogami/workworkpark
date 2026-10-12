@@ -1,4 +1,4 @@
-import { drawCoin, OBJECT_SIZE } from '../../engine/objects'
+import { drawCoin, drawPoisonMushroom, OBJECT_SIZE } from '../../engine/objects'
 import { toScreen, wrapOffset } from '../../engine/scroll'
 import { drawCharacter } from '../../game/sprite'
 import { colors, fonts } from '../../theme'
@@ -56,20 +56,23 @@ function drawPlatforms(ctx: CanvasRenderingContext2D, state: CoinState) {
   }
 }
 
+// コインと毒キノコ。当たり判定の枠（item）から、見た目の左上を求めて描く
 function drawCoins(ctx: CanvasRenderingContext2D, state: CoinState) {
   const t = state.scroll.elapsed
-  const hit = OBJECT_SIZE.coin.hit
   for (const c of state.coins) {
-    const s = toScreen(SCROLL, state.scroll, c.x - hit.x, c.y - hit.y) // 当たり判定の枠 → 見た目の左上
-    if (s.x > STAGE_WIDTH || s.x + OBJECT_SIZE.coin.width < 0) continue
-    drawCoin(ctx, s.x, s.y, t + c.x * 0.003) // 場所ごとに回り始めをずらす
+    const kind = c.kind === 'poison' ? 'poison' : 'coin'
+    const hit = OBJECT_SIZE[kind].hit
+    const s = toScreen(SCROLL, state.scroll, c.x - hit.x, c.y - hit.y)
+    if (s.x > STAGE_WIDTH || s.x + OBJECT_SIZE[kind].width < 0) continue
+    if (kind === 'poison') drawPoisonMushroom(ctx, s.x, s.y, t)
+    else drawCoin(ctx, s.x, s.y, t + c.x * 0.003) // 場所ごとに回り始めをずらす
   }
 }
 
 // コインを取った場所の光（4本の短い線が広がる）
 function drawPops(ctx: CanvasRenderingContext2D, state: CoinState) {
-  ctx.fillStyle = colors.object.coin.shine
   for (const p of state.pops) {
+    ctx.fillStyle = p.poison ? colors.ui.finish : colors.object.coin.shine
     const s = toScreen(SCROLL, state.scroll, p.x, p.y)
     const r = DOT * (3 + Math.floor(p.age * 20))
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) ctx.fillRect(s.x + dx * r - DOT, s.y + dy * r - DOT, DOT * 2, DOT * 2)
@@ -91,9 +94,9 @@ function drawName(ctx: CanvasRenderingContext2D, name: string, color: string, x:
   ctx.fillText(name, cx, y)
 }
 
-// 角を欠いた箱（TIME の箱と同じ形。Jump the highest の drawPanel と同じ）。border で枠の色を変えられる
-function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, border: string = colors.frame.border) {
-  ctx.fillStyle = border
+// 角を落とした四角（ドット風の丸み）。Jump the highest の TIME の箱と同じ
+function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.fillStyle = colors.frame.border
   ctx.fillRect(x + 6, y, w - 12, h)
   ctx.fillRect(x, y + 6, w, h - 12)
   ctx.fillStyle = colors.frame.fill
@@ -101,44 +104,38 @@ function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.fillRect(x + 3, y + 9, w - 6, h - 18)
 }
 
-// 1人分の枚数の箱：キャラの絵 + 「×枚数」。highlight は勝った人（枠を山吹色にする）
-function drawCountChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, count: number, size: number, highlight: boolean) {
-  drawPanel(ctx, x, y, w, h, highlight ? colors.ui.start : colors.frame.border)
-  const icon = size
-  drawCharacter(ctx, x + 12, y + (h - icon) / 2, icon, color, 1)
-  ctx.font = `bold ${size >= 40 ? (w >= 130 ? 36 : 28) : 24}px ${fonts.dot}`
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'middle'
-  ctx.fillStyle = colors.ink.main
-  ctx.fillText(`×${count}`, x + 12 + icon + 8, y + h / 2 + 2)
-}
-
-// 遊んでいる間：残り時間（上の真ん中）と、全員のコインの枚数（下の地面の部分。キャラや足場に重ならない）
-function drawHud(ctx: CanvasRenderingContext2D, state: CoinState, looks: Record<string, PlayerLook>) {
-  const remaining = Math.max(0, Math.ceil(TIME_LIMIT - state.scroll.elapsed))
+// 残り時間（切り上げで表示し、0 になった瞬間に終了）。上の中央に「TIME 00:12」の形（Jump the highest・落下物避けと同じ）
+function drawTime(ctx: CanvasRenderingContext2D, elapsed: number) {
+  const remaining = Math.max(0, Math.ceil(TIME_LIMIT - elapsed))
   drawPanel(ctx, STAGE_WIDTH / 2 - 120, 18, 240, 52)
   ctx.font = `28px ${fonts.dot}`
-  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
   ctx.fillStyle = colors.ink.main
   ctx.fillText(`TIME 00:${String(remaining).padStart(2, '0')}`, STAGE_WIDTH / 2, 45)
-
-  const n = state.runners.length
-  const w = Math.min(112, Math.floor((STAGE_WIDTH - 40) / n) - 8)
-  const total = n * (w + 8) - 8
-  state.runners.forEach((r, i) => {
-    drawCountChip(ctx, (STAGE_WIDTH - total) / 2 + i * (w + 8), GROUND_Y + 28, w, 48, looks[r.playerId]?.color ?? colors.ui.text, state.scores[r.playerId] ?? 0, 20, false)
-  })
 }
 
-// 終わったとき：集めた枚数を、多い順に上に並べる。勝った人（引き分けなら全員）は枠が山吹色
-function drawResult(ctx: CanvasRenderingContext2D, state: CoinState, looks: Record<string, PlayerLook>) {
-  const ranked = [...state.runners].sort((a, b) => (state.scores[b.playerId] ?? 0) - (state.scores[a.playerId] ?? 0))
-  const n = ranked.length
-  const w = Math.min(140, Math.floor((STAGE_WIDTH - 40) / n) - 8)
-  const total = n * (w + 8) - 8
-  ranked.forEach((r, i) => {
-    drawCountChip(ctx, (STAGE_WIDTH - total) / 2 + i * (w + 8), 24, w, 72, looks[r.playerId]?.color ?? colors.ui.text, state.scores[r.playerId] ?? 0, 40, state.winners.includes(r.playerId))
+// 各自の点数（キャラの小さな絵＋数字）を TIME の下に横並びで出す（落下物避けと同じ）。終了の瞬間は一番高い人（引き分けなら全員）を朱色にする
+const SCORE_SLOT = 110
+const SCORE_Y = 84
+function drawScores(ctx: CanvasRenderingContext2D, state: CoinState, looks: Record<string, PlayerLook>) {
+  const n = state.runners.length
+  const left = (STAGE_WIDTH - n * SCORE_SLOT) / 2
+  const best = Math.max(...Object.values(state.scores))
+  state.runners.forEach((r, i) => {
+    const color = looks[r.playerId]?.color ?? colors.ui.text
+    const cx = left + i * SCORE_SLOT + SCORE_SLOT / 2
+    drawCharacter(ctx, cx - 40, SCORE_Y, 28, color, 1)
+    ctx.font = `bold 32px ${fonts.dot}`
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.lineWidth = 6
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = colors.ink.main
+    const text = String(state.scores[r.playerId])
+    ctx.strokeText(text, cx - 6, SCORE_Y + 14)
+    ctx.fillStyle = state.finished && state.scores[r.playerId] === best ? colors.ui.finish : colors.frame.fill
+    ctx.fillText(text, cx - 6, SCORE_Y + 14)
   })
 }
 
@@ -157,6 +154,6 @@ export function render(ctx: CanvasRenderingContext2D, state: CoinState, looks: R
     if (showNames && look?.name) drawName(ctx, look.name, look.color, s.x, s.y)
   }
   drawPops(ctx, state)
-  if (state.finished) drawResult(ctx, state, looks)
-  else drawHud(ctx, state, looks)
+  drawTime(ctx, state.scroll.elapsed)
+  drawScores(ctx, state, looks)
 }

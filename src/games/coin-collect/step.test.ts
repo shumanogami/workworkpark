@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIXED_DT, GROUND_Y, PLAYER_SIZE, RIGHT_LIMIT, STAGE_WIDTH, TIME_LIMIT } from './constants'
+import { POISON_POINTS, COIN_POINTS, FIXED_DT, GROUND_Y, PLAYER_SIZE, RIGHT_LIMIT, STAGE_WIDTH, TIME_LIMIT } from './constants'
 import { createCoinState, type CoinInputs, type CoinState, leaders, step } from './step'
 
 const NONE = { left: false, right: false, jump: false }
@@ -80,5 +80,18 @@ describe('コイン集めの1コマ', () => {
     const b = run(createCoinState(['a', 'b'], 9), 6, input)
     expect(a.scores).toEqual(b.scores)
     expect(a.runners).toEqual(b.runners)
+  })
+
+  it('コインは10点。毒キノコに触れると10点引かれ、0 未満にはならない', () => {
+    const s0 = createCoinState(['a'], 1)
+    const me = s0.runners[0]
+    const at = (id: string, points: number, kind: string) => ({ id, x: me.x + 10, y: me.y + 10, width: 10, height: 10, points, kind })
+    const coin = step({ ...s0, coins: [at('c', COIN_POINTS, 'coin')] }, {}, FIXED_DT)
+    expect(coin.scores.a).toBe(10)
+    const poison = step({ ...coin, coins: [at('p', POISON_POINTS, 'poison')] }, {}, FIXED_DT)
+    expect(poison.scores.a).toBe(0)
+    expect(poison.pops.some((p) => p.poison)).toBe(true)
+    const floor = step({ ...poison, coins: [at('p2', POISON_POINTS, 'poison')] }, {}, FIXED_DT)
+    expect(floor.scores.a).toBe(0)
   })
 })

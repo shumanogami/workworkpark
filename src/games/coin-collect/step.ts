@@ -10,13 +10,13 @@ import { createStage, extendStage, GROUND_PLATFORM, nextRandom, type StageGen } 
 // 1. 横スクロールを進める（カメラが右へ。画面の左端が「動く壁」で、遅れた人を押して運ぶ）
 // 2. 画面の右の少し先まで、コインと足場を足す
 // 3. 全員を動かす（画面の右の1/3には行けない）（キャラの物理 → 足場に乗る → キャラどうしの当たり判定）
-// 4. 触れたコインを取り、点数に足す（点数は画面に出さない）
+// 4. 触れたコインを取って足し、毒キノコに触れたら引く（0 未満にはならない）
 // 5. 制限時間になったら終わり。一番多い人が勝ち（同数は引き分け）
 
 export type Runner = Jumper & { playerId: string }
 
 // コインを取った場所に出す小さな光（見た目だけ）
-export type Pop = { x: number; y: number; age: number }
+export type Pop = { x: number; y: number; age: number; poison: boolean }
 
 export type CoinState = {
   scroll: ScrollState // elapsed がゲーム開始からの秒数
@@ -103,7 +103,7 @@ export function step(state: CoinState, inputs: CoinInputs, dt: number): CoinStat
     ...state.pops.map((p) => ({ ...p, age: p.age + dt })).filter((p) => p.age < POP_SECONDS),
     ...pickups.map((p) => {
       const item = [...state.coins, ...stage.coins].find((c) => c.id === p.itemId)!
-      return { x: item.x + item.width / 2, y: item.y + item.height / 2, age: 0 }
+      return { x: item.x + item.width / 2, y: item.y + item.height / 2, age: 0, poison: p.points < 0 }
     }),
   ]
 

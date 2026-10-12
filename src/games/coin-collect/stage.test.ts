@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { overlaps } from '../../engine/rect'
-import { BLOCK_WIDTH, GROUND_Y, HIGH_Y, MID_Y, PLATFORM_HEIGHT } from './constants'
+import { BLOCK_WIDTH, COIN_POINTS, GROUND_Y, HIGH_Y, MID_Y, PLATFORM_HEIGHT, POISON_POINTS } from './constants'
 import { createStage, extendStage } from './stage'
 
 const gen = (seed: number, until = 12000) => extendStage(createStage(seed), until)
@@ -63,5 +63,31 @@ describe('コインと足場の並べ方', () => {
   it('ブロックは重ならない（ブロックの幅 + 隙間ずつ進む）', () => {
     const g = gen(1, 5000).gen
     expect(g.nextX).toBeGreaterThanOrEqual(g.count * BLOCK_WIDTH)
+  })
+
+  it('コインは +10、毒キノコは -10。毒キノコは全体の1割ほどで、地面の上にも置かれる', () => {
+    const s = gen(2, 20000)
+    const poison = s.coins.filter((c) => c.kind === 'poison')
+    const coins = s.coins.filter((c) => c.kind === 'coin')
+    expect(coins.every((c) => c.points === COIN_POINTS)).toBe(true)
+    expect(poison.every((c) => c.points === POISON_POINTS)).toBe(true)
+    const ratio = poison.length / s.coins.length
+    expect(ratio).toBeGreaterThan(0.05)
+    expect(ratio).toBeLessThan(0.25)
+    expect(poison.some((c) => c.y + c.height > GROUND_Y - 30)).toBe(true)
+  })
+
+  it('毒キノコは足場や地面に埋まらない。地面の毒キノコの前後45px は、地面のコインがない', () => {
+    for (let seed = 0; seed < 20; seed++) {
+      const s = gen(seed)
+      const onGround = (c: { y: number; height: number }) => c.y + c.height > GROUND_Y - 30
+      for (const p of s.coins.filter((c) => c.kind === 'poison' && onGround(c))) {
+        for (const c of s.coins.filter((c) => c.kind === 'coin' && onGround(c))) expect(Math.abs(c.x - p.x)).toBeGreaterThan(30)
+      }
+      for (const c of s.coins.filter((c) => c.kind === 'poison')) {
+        expect(c.y + c.height).toBeLessThanOrEqual(GROUND_Y)
+        for (const p of s.platforms) expect(overlaps(c, { x: p.x, y: p.y, width: p.width, height: PLATFORM_HEIGHT })).toBe(false)
+      }
+    }
   })
 })

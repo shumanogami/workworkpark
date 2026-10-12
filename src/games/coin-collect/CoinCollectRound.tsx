@@ -1,7 +1,7 @@
 import RoundShell, { type RoundGame } from '../../platform/RoundShell'
 import type { MiniGamePlayer, RoundProps } from '../../platform/types'
 import { render, type PlayerLook } from './render'
-import { playCoin } from './sounds'
+import { playCoin, playPoison } from './sounds'
 import { type CoinState, createCoinState, step } from './step'
 
 // コイン集めの1ラウンド分の画面。流れ（カウントダウン・FINISH・音・全画面）は共通の枠 RoundShell が受け持つ
@@ -24,10 +24,12 @@ const GAME: RoundGame<CoinState> = {
     // 弾かれた瞬間
     if (next.runners.some((r, i) => r.stunTime > 0 && prev.runners[i].stunTime === 0)) events.push('bounce')
     // コインを取った瞬間
-    if (next.pops.some((p) => p.age === 0)) events.push('coin')
+    if (next.pops.some((p) => p.age === 0 && !p.poison)) events.push('coin')
+    // 毒キノコに触れた瞬間
+    if (next.pops.some((p) => p.age === 0 && p.poison)) events.push('poison')
     return events
   },
-  sfx: { coin: playCoin },
+  sfx: { coin: playCoin, poison: playPoison },
 }
 
 function looksOf(players: MiniGamePlayer[]): Record<string, PlayerLook> {

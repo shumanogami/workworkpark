@@ -8,3 +8,8 @@ export function playCoin() {
   playTone({ type: 'square', from: midiToFrequency(83), duration: 0.07, volume: 0.22 })
   playTone({ type: 'square', from: midiToFrequency(88), start: 0.07, duration: 0.2, volume: 0.22 })
 }
+
+// 毒キノコに触れた音：下がっていく低い音「ブッ」
+export function playPoison() {
+  playTone({ type: 'sawtooth', from: 220, to: 70, duration: 0.3, volume: 0.25 })
+}

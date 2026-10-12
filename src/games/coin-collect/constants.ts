@@ -38,10 +38,13 @@ export const COLLISION: Omit<JumperCollisionConfig, 'minX' | 'maxX'> = {
   minStandOverlap: PLAYER_SIZE / 4,
 }
 
-export const COIN_POINTS = 1 // コイン1枚の点数（画面には出さない）
+export const COIN_POINTS = 10 // コイン1枚の点数
+export const POISON_POINTS = -10 // 毒キノコ1個の点数（0 未満にはならない）。落下物避けのコインに合わせて ＋10
 
 // ---- コインと足場の並べ方（stage.ts）----
 export const BLOCK_WIDTH = 480 // 1ブロックの横幅
 export const FIRST_BLOCK_X = 480 // 最初のブロックの位置（スタート地点の右。スタートで全員が並べるよう、手前は空ける）
 export const GAP_MAX = 0 // ブロックと次のブロックの間の、ランダムな隙間の上限（0＝隙間なし。スクロールが遅く進む距離が短いので詰めた）
+export const POISON_ON_GROUND = 1 // 1ブロックの、地面の列に置く毒キノコの数（地面のコインの一部と入れ替える）。ジャンプで越えて避ける
+export const POISON_ON_PLATFORM_CHANCE = 0.5 // 1ブロックで、足場の上のコインの1つを毒キノコにする確率
 export const GENERATE_AHEAD = 600 // 画面の右端よりこれだけ先まで、先に作っておく
