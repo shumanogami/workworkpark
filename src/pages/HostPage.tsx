@@ -14,6 +14,7 @@ import {
   type MatchStage,
   type MatchState,
 } from '../platform/match'
+import { toFurigana } from '../platform/furigana'
 import MiniResult from '../platform/MiniResult'
 import ResultStairs from '../platform/ResultStairs'
 import { findMiniGame, GAMES_IN_DEVELOPMENT, MINI_GAMES } from '../platform/registry'
@@ -275,7 +276,7 @@ export default function HostPage() {
   )
 }
 
-// ラウンドの始めに、ひと言の指示を画面の上の方に大きく出し、決めた時間が経ったら消す
+// ラウンドの始めに、ひと言の指示を画面の上の方に大きく出し、決めた時間が経ったら消す（漢字にはふりがなを付ける）
 function Instruction({ text }: { text: string }) {
   const [visible, setVisible] = useState(true)
   useEffect(() => {
@@ -290,7 +291,19 @@ function Instruction({ text }: { text: string }) {
       // 明るい空の上でも読めるよう、濃紺のふちを付ける
       style={{ color: colors.ui.start, WebkitTextStroke: `2px ${colors.ink.main}`, paintOrder: 'stroke fill' }}
     >
-      {text}
+      {toFurigana(text).map((s, i) =>
+        s.reading ? (
+          <ruby key={i}>
+            {s.text}
+            {/* ふりがなは本文の半分ほどの大きさ（離れた画面からも読めるように）。ふちは本文より細くする（太いと小さな文字がつぶれるため） */}
+            <rt className="text-3xl" style={{ WebkitTextStroke: `1px ${colors.ink.main}` }}>
+              {s.reading}
+            </rt>
+          </ruby>
+        ) : (
+          <span key={i}>{s.text}</span>
+        ),
+      )}
     </p>
   )
 }
