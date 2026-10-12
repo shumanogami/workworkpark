@@ -87,6 +87,28 @@ describe('落下物避けの1コマ', () => {
     expect(after.scores.a + after.scores.b).toBe(COIN_POINTS)
   })
 
+  it('頭の上に乗った人は、下の人が横に動いた分だけ一緒に運ばれる（3段でも）', () => {
+    const s = createFallingState(['a', 'b', 'c'], 1)
+    const [a, b, c] = s.runners
+    // a の頭に b、b の頭に c が乗っている（少しずらして）
+    const stacked: FallingState = {
+      ...s,
+      spawnTimer: 99,
+      runners: [
+        { ...a, x: 300 },
+        { ...b, x: 304, y: a.y - 40, standingOn: 'a' },
+        { ...c, x: 308, y: a.y - 80, standingOn: 'b' },
+      ],
+    }
+    const after = run(stacked, 0.5, { a: { left: false, right: true, jump: false } })
+    const [na, nb, nc] = after.runners
+    expect(na.x).toBeGreaterThan(350) // a は右へ歩いた
+    expect(nb.x - na.x).toBeCloseTo(4, 0) // 乗っている人は置いていかれない
+    expect(nc.x - na.x).toBeCloseTo(8, 0)
+    expect(nb.standingOn).toBe('a')
+    expect(nc.standingOn).toBe('b')
+  })
+
   it('だんだん数が増え、速くなる', () => {
     expect(spawnInterval(ROUND_SECONDS, 4)).toBeLessThan(spawnInterval(0, 4))
     expect(fallSpeed(ROUND_SECONDS)).toBeGreaterThan(fallSpeed(0))
